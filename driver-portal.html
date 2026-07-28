@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastermind Matrix - Driver Terminal Pro</title>
+  <style>
+    :root {
+      --bg-primary: #060911;
+      --bg-surface: #0f1626;
+      --bg-card: #141f36;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --metallic-blue: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+      --metallic-silver: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
+      --border-metallic: 1px solid rgba(148, 163, 184, 0.25);
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-main); padding: 1rem; max-width: 500px; margin: 0 auto; }
+    .brand-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: var(--border-metallic); }
+    .brand-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 2px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+    .brand-subtitle { font-size: 0.65rem; color: #06b6d4; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 4px; }
+    
+    .load-card { background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+    .load-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--metallic-blue); }
+    .load-card h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: #ffffff; letter-spacing: 0.5px; font-weight: 800; }
+    .load-card p { margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted); }
+    .load-card p strong { color: var(--text-main); }
+    
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; }
+    .btn-driver { padding: 0.875rem; font-size: 0.9rem; font-weight: 700; border-radius: 0.5rem; border: var(--border-metallic); background: var(--metallic-blue); color: white; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-driver:hover { filter: brightness(1.2); box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
+    .btn-secondary { background: #1e293b; color: var(--text-main); }
+  </style>
+</head>
+<body>
+  <div class="brand-header">
+    <div class="brand-title">Mastermind Matrix</div>
+    <div class="brand-subtitle">The Black Label • Mobile Driver Terminal</div>
+  </div>
+
+  <div id="assigned-loads-container">
+    <div class="load-card">
+      <h3>Active Load #MM-8012</h3>
+      <p><strong>Shipper / Broker:</strong> Amazon Relay Direct</p>
+      <p><strong>Facility Pickup:</strong> Chicago Fulfillment Hub (Gate 4)</p>
+      <p><strong>Delivery Destination:</strong> Columbus Sort Center</p>
+      <p><strong>Telemetry Status:</strong> <span style="color:var(--success); font-weight:700;">GPS Active / En Route</span></p>
+      <div class="action-grid">
+        <button class="btn-driver" onclick="alert('Smart Geofence Check-In Confirmed at Facility Gate')">Facility Check-In</button>
+        <button class="btn-driver" onclick="alert('Telemetry Update: Departed Facility')">Departed Facility</button>
+        <button class="btn-driver" onclick="alert('Status updated: Delivered & Signed')">Mark Delivered</button>
+        <button class="btn-driver btn-secondary" onclick="alert('Scanning POD via AI Camera OCR...')">Scan & Upload POD</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </script>
+</body>
+</html>
