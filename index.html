@@ -30,6 +30,7 @@
     input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.4); }
     .btn { width: 100%; background: var(--metallic-blue); color: white; border: var(--border-metallic); padding: 0.875rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(29, 78, 216, 0.4); }
     .btn:hover { filter: brightness(1.2); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .error-msg { color: #f87171; font-size: 0.875rem; margin-top: 0.75rem; display: none; text-align: center; }
   </style>
 </head>
@@ -49,7 +50,7 @@
         <input type="password" id="password" required placeholder="••••••••">
       </div>
       <div id="error-alert" class="error-msg"></div>
-      <button type="submit" class="btn" style="margin-top: 0.5rem;">Initialize Session</button>
+      <button type="submit" id="submit-btn" class="btn" style="margin-top: 0.5rem;">Initialize Session</button>
     </form>
   </div>
 
@@ -59,30 +60,44 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    async function redirectByRole(userId) {
+      const { data: profile } = await supabase.from('profiles').select('role').eq('user_id', userId).single();
+      if (profile?.role === 'DRIVER') {
+        window.location.href = 'driver-portal.html';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    }
+
+    async function checkExistingSession() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await redirectByRole(user.id);
+      }
+    }
+    checkExistingSession();
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const errorAlert = document.getElementById('error-alert');
+      const submitBtn = document.getElementById('submit-btn');
+      
       errorAlert.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Authenticating...';
 
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         errorAlert.innerText = error.message;
         errorAlert.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Initialize Session';
         return;
       }
       
-      const { data: profile } = await supabase.from('profiles').select('role').eq('user_id', data.user.id).single();
-      
-      // 3-Way Role Routing
-      if (profile?.role === 'DRIVER') {
-        window.location.href = 'driver-portal.html';
-      } else if (profile?.role === 'ADMIN' || profile?.role === 'DISPATCHER') {
-        window.location.href = 'dashboard.html';
-      } else {
-        window.location.href = 'dashboard.html';
-      }
+      await redirectByRole(data.user.id);
     });
   </script>
 </body>
