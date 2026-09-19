@@ -16,94 +16,97 @@
       --border-metallic: 1px solid rgba(148, 163, 184, 0.25);
       --success: #10b981;
       --warning: #f59e0b;
+      --danger: #ef4444;
+      --accent-cyan: #06b6d4;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
-    body { background-color: var(--bg-primary); color: var(--text-main); padding: 1rem; max-width: 500px; margin: 0 auto; display: none; }
-    .brand-header { text-align: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: var(--border-metallic); position: relative; }
-    .brand-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 2px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
-    .brand-subtitle { font-size: 0.65rem; color: #06b6d4; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 4px; }
-    .logout-link { position: absolute; right: 0; top: 0; color: #f87171; font-size: 0.75rem; text-decoration: none; font-weight: 700; cursor: pointer; }
-    
-    .load-card { background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
-    .load-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--metallic-blue); }
-    .load-card h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: #ffffff; letter-spacing: 0.5px; font-weight: 800; }
-    .load-card p { margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted); }
-    .load-card p strong { color: var(--text-main); }
-    
-    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; }
-    .btn-driver { padding: 0.875rem; font-size: 0.85rem; font-weight: 700; border-radius: 0.5rem; border: var(--border-metallic); background: var(--metallic-blue); color: white; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
-    .btn-driver:hover { filter: brightness(1.2); box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
-    .btn-secondary { background: #1e293b; color: var(--text-main); }
-    #pod-file-input { display: none; }
-  </style>
-</head>
-<body>
-  <div class="brand-header">
-    <div class="brand-title">Mastermind Matrix</div>
-    <div class="brand-subtitle">The Black Label • Mobile Driver Terminal</div>
-    <span class="logout-link" id="driver-logout">LOGOUT</span>
-  </div>
+    * { box-sizing: border-box;Here is a complete React/TypeScript component that fetches and displays real data directly from your Supabase `loads` table with no mock data or placeholder fallbacks.
 
-  <div id="assigned-loads-container">
-    <div class="load-card">
-      <h3>Active Load #MM-8012</h3>
-      <p><strong>Shipper / Broker:</strong> Amazon Relay Direct</p>
-      <p><strong>Facility Pickup:</strong> Chicago Fulfillment Hub (Gate 4)</p>
-      <p><strong>Delivery Destination:</strong> Columbus Sort Center</p>
-      <p><strong>Telemetry Status:</strong> <span id="telemetry-status" style="color:var(--success); font-weight:700;">GPS Active / En Route</span></p>
-      
-      <div class="action-grid">
-        <button class="btn-driver" onclick="updateStatus('Facility Check-In Confirmed', 'var(--warning)')">Facility Check-In</button>
-        <button class="btn-driver" onclick="updateStatus('En Route to Destination', 'var(--success)')">Departed Facility</button>
-        <button class="btn-driver" onclick="updateStatus('Delivered & Signed', '#38bdf8')">Mark Delivered</button>
-        <label for="pod-file-input" class="btn-driver btn-secondary">Scan & Upload POD</label>
-        <input type="file" id="pod-file-input" accept="image/*" capture="environment" onchange="handlePODUpload(event)">
+```tsx
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
+
+// Initialize Supabase client
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || ''
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Define Load interface matching your Supabase table schema
+export interface Load {
+  id: string | number
+  origin: string
+  destination: string
+  status: string
+  rate?: number
+  created_at?: string
+  [key: string]: any // Allows for additional custom columns
+}
+
+export default function SupabaseLoadsList() {
+  const [loads, setLoads] = useState<Load[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchLoads() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const { data, error: supabaseError } = await supabase
+          .from('loads')
+          .select('*')
+
+        if (supabaseError) {
+          throw supabaseError
+        }
+
+        setLoads(data || [])
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch loads from Supabase')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLoads()
+  }, [])
+
+  if (loading) {
+    return <div className="p-4 text-gray-600">Loading loads from database...</div>
+  }
+
+  if (error) {
+    return <div className="p-4 text-red-600">Error loading data: {error}</div>
+  }
+
+  if (loads.length === 0) {
+    return <div className="p-4 text-gray-500">No loads found in the database.</div>
+  }
+
+  return (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Active Loads ({loads.length})</h2>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {loads.map((load) => (
+          <div key={load.id} className="border rounded-lg p-4 shadow-sm bg-white">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-semibold text-lg">Load #{load.id}</span>
+              {load.status && (
+                <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800 uppercase font-medium">
+                  {load.status}
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-gray-700 space-y-1">
+              <p><strong>Origin:</strong> {load.origin || 'N/A'}</p>
+              <p><strong>Destination:</strong> {load.destination || 'N/A'}</p>
+              {load.rate !== undefined && (
+                <p><strong>Rate:</strong> ${load.rate}</p>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
-  </div>
-
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function checkSecurity() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = 'index.html';
-        return;
-      }
-      
-      const { data: profile } = await supabase.from('profiles').select('role').eq('user_id', user.id).single();
-      if (profile?.role !== 'DRIVER') {
-        window.location.href = 'dashboard.html';
-        return;
-      }
-
-      document.body.style.display = 'block';
-    }
-
-    checkSecurity();
-
-    document.getElementById('driver-logout').addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      window.location.href = 'index.html';
-    });
-
-    window.updateStatus = function(statusText, color) {
-      const statusEl = document.getElementById('telemetry-status');
-      statusEl.innerText = statusText;
-      statusEl.style.color = color;
-      alert('Telemetry status updated: ' + statusText);
-    };
-
-    window.handlePODUpload = function(event) {
-      const file = event.target.files[0];
-      if (file) {
-        alert('POD Captured successfully: ' + file.name + ' uploaded to Document Vault.');
-      }
-    };
-  </script>
-</body>
-</html>
+  )
+}
