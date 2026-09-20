@@ -15,34 +15,45 @@
       --metallic-silver: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
       --border-metallic: 1px solid rgba(148, 163, 184, 0.25);
       --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
-    body { background-color: var(--bg-primary); color: var(--text-main); padding: 1rem; max-width: 500px; margin: 0 auto; }
-    .brand-header { text-align: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: var(--border-metallic); }
+    body { background-color: var(--bg-primary); color: var(--text-main); padding: 1rem; max-width: 500px; margin: 0 auto; min-height: 100vh; }
+    
+    .brand-header { text-align: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: var(--border-metallic); }
     .brand-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 2px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
     .brand-subtitle { font-size: 0.65rem; color: #06b6d4; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 4px; }
     
     .driver-badge-card { background: var(--bg-surface); border: var(--border-metallic); padding: 0.85rem 1rem; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     .driver-badge-card .info { font-size: 0.85rem; font-weight: 700; }
     
-    .load-card { background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+    .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; background: var(--bg-surface); padding: 0.35rem; border-radius: 0.5rem; border: var(--border-metallic); }
+    .tab-btn { flex: 1; padding: 0.75rem; background: transparent; border: none; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; border-radius: 0.35rem; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+    .tab-btn.active { background: var(--metallic-blue); color: #ffffff; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+
+    .load-card { background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
     .load-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--metallic-blue); }
-    .load-card h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: #ffffff; letter-spacing: 0.5px; font-weight: 800; }
-    .load-card p { margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted); }
+    .load-card .rate-tag { float: right; font-size: 1.25rem; font-weight: 900; color: var(--success); }
+    .load-card h3 { font-size: 1.05rem; margin-bottom: 0.6rem; color: #ffffff; letter-spacing: 0.5px; font-weight: 800; }
+    .load-card p { margin-bottom: 0.4rem; font-size: 0.875rem; color: var(--text-muted); }
     .load-card p strong { color: var(--text-main); }
-    
-    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; }
-    .btn-driver { padding: 0.875rem; font-size: 0.9rem; font-weight: 700; border-radius: 0.5rem; border: var(--border-metallic); background: var(--metallic-blue); color: white; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 1rem; }
+    .btn-driver { padding: 0.75rem; font-size: 0.8rem; font-weight: 700; border-radius: 0.5rem; border: var(--border-metallic); background: var(--metallic-blue); color: white; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
     .btn-driver:hover { filter: brightness(1.2); box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
     .btn-secondary { background: #1e293b; color: var(--text-main); }
+    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); color: white; grid-column: span 2; margin-top: 0.25rem; border: 1px solid rgba(239, 68, 68, 0.4); }
+    
     .btn-logout { background: #ef4444; color: white; border: none; padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.35rem; cursor: pointer; }
     .btn-admin-nav { display: block; text-align: center; background: #059669; color: white; text-decoration: none; padding: 0.75rem; font-weight: 800; border-radius: 0.5rem; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.85rem; }
+    .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); font-size: 0.9rem; background: var(--bg-surface); border-radius: 0.75rem; border: var(--border-metallic); }
   </style>
 </head>
 <body>
   <div class="brand-header">
     <div class="brand-title">Mastermind Matrix</div>
-    <div class="brand-subtitle">The Black Label • Mobile Driver Terminal</div>
+    <div class="brand-subtitle">The Black Label • Driver Terminal & Load Board</div>
   </div>
 
   <div class="driver-badge-card">
@@ -54,23 +65,23 @@
   </div>
 
   <a href="dashboard.html" id="admin-dashboard-link" class="btn-admin-nav" style="display: none;">
-    &larr; Switch to Admin/Dispatcher Dashboard
+    &larr; Switch to Enterprise Dispatch Command
   </a>
 
-  <div id="assigned-loads-container">
-    <div class="load-card">
-      <h3>Active Load #MM-8012</h3>
-      <p><strong>Shipper / Broker:</strong> Amazon Relay Direct</p>
-      <p><strong>Facility Pickup:</strong> Chicago Fulfillment Hub (Gate 4)</p>
-      <p><strong>Delivery Destination:</strong> Columbus Sort Center</p>
-      <p><strong>Telemetry Status:</strong> <span style="color:var(--success); font-weight:700;">GPS Active / En Route</span></p>
-      <div class="action-grid">
-        <button class="btn-driver" onclick="alert('Smart Geofence Check-In Confirmed at Facility Gate')">Facility Check-In</button>
-        <button class="btn-driver" onclick="alert('Telemetry Update: Departed Facility')">Departed Facility</button>
-        <button class="btn-driver" onclick="alert('Status updated: Delivered & Signed')">Mark Delivered</button>
-        <button class="btn-driver btn-secondary" onclick="alert('Scanning POD via AI Camera OCR...')">Scan & Upload POD</button>
-      </div>
-    </div>
+  <!-- Navigation Tabs -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" id="tab-active-btn" onclick="switchTab('active')">My Active Loads (<span id="count-active">0</span>)</button>
+    <button class="tab-btn" id="tab-board-btn" onclick="switchTab('board')">Load Board (<span id="count-board">0</span>)</button>
+  </div>
+
+  <!-- TAB 1: ACTIVE LOADS -->
+  <div id="view-active-loads">
+    <div id="active-loads-container"></div>
+  </div>
+
+  <!-- TAB 2: AVAILABLE LOAD BOARD -->
+  <div id="view-load-board" style="display: none;">
+    <div id="board-loads-container"></div>
   </div>
 
   <script type="module">
@@ -79,36 +90,216 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async function initDriverPortal() {
-      // Require Login
+    let currentUser = null;
+
+    // Master state store for available and assigned loads
+    let loadsData = [
+      {
+        id: 'MM-8012',
+        shipper: 'Amazon Relay Direct',
+        origin: 'Chicago Fulfillment Hub (Gate 4)',
+        destination: 'Columbus Sort Center',
+        equipment: "53' Dry Van",
+        rate: '$1,850',
+        rpm: '$3.65/mi',
+        pickup: 'Today 14:00',
+        status: 'ASSIGNED',
+        driver_id: null // Set dynamically to current logged-in driver
+      },
+      {
+        id: 'MM-8015',
+        shipper: 'Uber Freight Spot',
+        origin: 'Chicago, IL',
+        destination: 'Nashville, TN',
+        equipment: "53' Dry Van",
+        rate: '$2,450',
+        rpm: '$5.21/mi',
+        pickup: 'Today 16:30',
+        status: 'AVAILABLE',
+        driver_id: null
+      },
+      {
+        id: 'MM-8016',
+        shipper: 'C.H. Robinson Direct',
+        origin: 'Phoenix, AZ',
+        destination: 'Denver, CO',
+        equipment: "53' Reefer",
+        rate: '$3,100',
+        rpm: '$3.64/mi',
+        pickup: 'Tomorrow 08:00',
+        status: 'AVAILABLE',
+        driver_id: null
+      },
+      {
+        id: 'MM-8017',
+        shipper: 'TQL Logistics',
+        origin: 'Dallas, TX',
+        destination: 'Atlanta, GA',
+        equipment: "53' Dry Van",
+        rate: '$2,800',
+        rpm: '$3.55/mi',
+        pickup: 'Tomorrow 12:00',
+        status: 'AVAILABLE',
+        driver_id: null
+      }
+    ];
+
+    async function initDriverTerminal() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         window.location.href = 'index.html';
         return;
       }
 
-      const user = session.user;
+      currentUser = session.user;
 
-      // Pull Profile Info from Supabase
-      const { data: profile } = await supabase.from('profiles').select('*').or(`user_id.eq.${user.id},id.eq.${user.id}`).single();
+      // Assign initial active load to logged-in user for demonstration
+      loadsData[0].driver_id = currentUser.id;
+
+      // Sync user profile
+      const { data: profile } = await supabase.from('profiles').select('*').or(`user_id.eq.${currentUser.id},id.eq.${currentUser.id}`).single();
       const role = (profile?.role || 'DRIVER').toUpperCase();
-      const fullName = profile?.full_name || profile?.name || user.email.split('@')[0];
+      const fullName = profile?.full_name || profile?.name || currentUser.email.split('@')[0];
 
       document.getElementById('driver-name').innerText = fullName;
       document.getElementById('driver-role').innerText = role;
 
-      // If user is Admin or Dispatcher, show option to return to business dashboard
       if (role === 'ADMIN' || role === 'DISPATCHER') {
         document.getElementById('admin-dashboard-link').style.display = 'block';
       }
+
+      // Fetch loads from Supabase DB if table exists, otherwise fallback to live state
+      await syncLoadsFromSupabase();
+      renderAllViews();
     }
+
+    async function syncLoadsFromSupabase() {
+      try {
+        const { data, error } = await supabase.from('loads').select('*');
+        if (!error && data && data.length > 0) {
+          loadsData = data;
+        }
+      } catch (err) {
+        console.log('Using active state engine...');
+      }
+    }
+
+    function renderAllViews() {
+      const activeLoads = loadsData.filter(l => l.driver_id === currentUser.id && l.status !== 'AVAILABLE');
+      const boardLoads = loadsData.filter(l => l.status === 'AVAILABLE');
+
+      document.getElementById('count-active').innerText = activeLoads.length;
+      document.getElementById('count-board').innerText = boardLoads.length;
+
+      // Render Active Loads
+      const activeContainer = document.getElementById('active-loads-container');
+      if (activeLoads.length === 0) {
+        activeContainer.innerHTML = `<div class="empty-state">No active loads assigned.<br>Switch to <strong>Load Board</strong> to accept available spot loads.</div>`;
+      } else {
+        activeContainer.innerHTML = activeLoads.map(load => `
+          <div class="load-card">
+            <div class="rate-tag">${load.rate}</div>
+            <h3>Active Load #${load.id}</h3>
+            <p><strong>Shipper / Broker:</strong> ${load.shipper}</p>
+            <p><strong>Pickup:</strong> ${load.origin}</p>
+            <p><strong>Destination:</strong> ${load.destination}</p>
+            <p><strong>Equipment:</strong> ${load.equipment}</p>
+            <p><strong>Status:</strong> <span style="color:var(--success); font-weight:700;">● Assigned / En Route</span></p>
+            <div class="action-grid">
+              <button class="btn-driver" onclick="alert('Geofence Check-In Confirmed')">Facility Check-In</button>
+              <button class="btn-driver" onclick="alert('Status updated: Departed Facility')">Departed Facility</button>
+              <button class="btn-driver" onclick="alert('Status updated: Delivered & Signed')">Mark Delivered</button>
+              <button class="btn-driver btn-secondary" onclick="alert('Scanning POD via AI Camera...')">Scan POD</button>
+              <button class="btn-driver btn-danger" onclick="cancelLoad('${load.id}')">Cancel Load (Return to Board)</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Render Load Board
+      const boardContainer = document.getElementById('board-loads-container');
+      if (boardLoads.length === 0) {
+        boardContainer.innerHTML = `<div class="empty-state">No available loads on the board right now. Check back shortly!</div>`;
+      } else {
+        boardContainer.innerHTML = boardLoads.map(load => `
+          <div class="load-card">
+            <div class="rate-tag">${load.rate}</div>
+            <h3>Load #${load.id}</h3>
+            <p><strong>Lane:</strong> ${load.origin} &rarr; ${load.destination}</p>
+            <p><strong>Shipper:</strong> ${load.shipper}</p>
+            <p><strong>Equipment:</strong> ${load.equipment} • <strong>RPM:</strong> ${load.rpm}</p>
+            <p><strong>Pickup Schedule:</strong> ${load.pickup}</p>
+            <button class="btn-driver" style="width:100%; margin-top:0.75rem;" onclick="acceptLoad('${load.id}')">Accept Load (Claim Now)</button>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Driver Action: Accept Load
+    window.acceptLoad = async function(loadId) {
+      const load = loadsData.find(l => l.id === loadId);
+      if (load) {
+        load.status = 'ASSIGNED';
+        load.driver_id = currentUser.id;
+
+        // Sync with Supabase Database
+        try {
+          await supabase.from('loads').update({ status: 'ASSIGNED', driver_id: currentUser.id }).eq('id', loadId);
+        } catch (e) {}
+
+        alert(`Load #${loadId} accepted successfully! It is now added to your Active Loads.`);
+        switchTab('active');
+        renderAllViews();
+      }
+    };
+
+    // Driver Action: Cancel Load (Return to Load Board)
+    window.cancelLoad = async function(loadId) {
+      if (!confirm(`Are you sure you want to cancel Load #${loadId}? It will be returned to the Load Board for other drivers.`)) {
+        return;
+      }
+
+      const load = loadsData.find(l => l.id === loadId);
+      if (load) {
+        load.status = 'AVAILABLE';
+        load.driver_id = null;
+
+        // Sync with Supabase Database
+        try {
+          await supabase.from('loads').update({ status: 'AVAILABLE', driver_id: null }).eq('id', loadId);
+        } catch (e) {}
+
+        alert(`Load #${loadId} has been canceled and returned to the Load Board.`);
+        renderAllViews();
+      }
+    };
+
+    // UI Tab Navigation
+    window.switchTab = function(tab) {
+      const activeBtn = document.getElementById('tab-active-btn');
+      const boardBtn = document.getElementById('tab-board-btn');
+      const activeView = document.getElementById('view-active-loads');
+      const boardView = document.getElementById('view-load-board');
+
+      if (tab === 'active') {
+        activeBtn.classList.add('active');
+        boardBtn.classList.remove('active');
+        activeView.style.display = 'block';
+        boardView.style.display = 'none';
+      } else {
+        boardBtn.classList.add('active');
+        activeBtn.classList.remove('active');
+        boardView.style.display = 'block';
+        activeView.style.display = 'none';
+      }
+    };
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
       await supabase.auth.signOut();
       window.location.href = 'index.html';
     });
 
-    initDriverPortal();
+    initDriverTerminal();
   </script>
 </body>
 </html>
