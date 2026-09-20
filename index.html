@@ -1,144 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Logistics Management System</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastermind Matrix: The Black Label - High-Tech TMS</title>
+  <style>
+    :root {
+      --bg-primary: #060911;
+      --bg-surface: #0f1626;
+      --bg-card: #141f36;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --metallic-blue: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+      --metallic-silver: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
+      --border-metallic: 1px solid rgba(148, 163, 184, 0.25);
+      --glow-blue: 0 0 20px rgba(59, 130, 246, 0.4);
+      --accent-cyan: #06b6d4;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; display: flex; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 15%, #1e293b 0%, #060911 85%); }
+    .login-box { width: 100%; max-width: 440px; padding: 3rem 2.5rem; background: var(--bg-surface); border: var(--border-metallic); border-radius: 1rem; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), var(--glow-blue); position: relative; overflow: hidden; }
+    .login-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--metallic-blue); }
+    .brand-header { text-align: center; margin-bottom: 2.5rem; }
+    .brand-title { font-size: 1.4rem; font-weight: 900; letter-spacing: 2.5px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+    .brand-subtitle { font-size: 0.7rem; font-weight: 700; color: var(--accent-cyan); letter-spacing: 3.5px; text-transform: uppercase; margin-top: 0.4rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    input { width: 100%; padding: 0.875rem 1rem; border: var(--border-metallic); border-radius: 0.5rem; background: #080d1a; color: var(--text-main); font-size: 1rem; transition: all 0.3s ease; }
+    input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.4); }
+    .btn { width: 100%; background: var(--metallic-blue); color: white; border: var(--border-metallic); padding: 0.875rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(29, 78, 216, 0.4); }
+    .btn:hover { filter: brightness(1.2); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6); transform: translateY(-1px); }
+    .error-msg { color: #f87171; font-size: 0.875rem; margin-top: 0.75rem; display: none; text-align: center; }
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col justify-between">
-
-  <!-- Navigation -->
-  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-    <div class="flex items-center space-x-3">
-      <span class="text-2xl font-bold text-blue-500">FleetFlow</span>
-      <span id="role-badge" class="text-xs bg-blue-900 text-blue-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">Loading...</span>
+<body>
+  <div class="login-box">
+    <div class="brand-header">
+      <div class="brand-title">Mastermind Matrix</div>
+      <div class="brand-subtitle">The Black Label • High-Tech TMS OS</div>
     </div>
-    
-    <div id="nav-links" class="flex items-center space-x-6 text-sm font-medium">
-      <a href="index.html" class="text-blue-400 font-bold">Home</a>
-      <a href="dashboard.html" id="nav-dashboard" class="text-gray-300 hover:text-white transition">Dashboard</a>
-      <a href="loadboard.html" id="nav-loadboard" class="text-gray-300 hover:text-white transition">Loadboard</a>
-      <a href="driver-portal.html" id="nav-driver" class="text-gray-300 hover:text-white transition">Driver Portal</a>
-    </div>
+    <form id="login-form">
+      <div class="form-group">
+        <label>Operator / Carrier ID</label>
+        <input type="email" id="email" required placeholder="user@company.com">
+      </div>
+      <div class="form-group">
+        <label>Neural Passkey</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+      <div id="error-alert" class="error-msg"></div>
+      <button type="submit" class="btn" style="margin-top: 0.5rem;">Initialize Session</button>
+    </form>
+  </div>
 
-    <div class="flex items-center space-x-3 text-sm">
-      <a href="profile.html" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg border border-gray-600 transition">
-        <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
-        <span id="user-display-name" class="font-medium">Profile</span>
-      </a>
-      <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-        Logout
-      </button>
-    </div>
-  </nav>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  <main class="max-w-5xl mx-auto px-6 py-12 text-center">
-    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4" id="hero-title">
-      Fleet Operations Portal
-    </h1>
-    <p class="text-lg text-gray-400 max-w-2xl mx-auto mb-8" id="hero-subtitle">
-      Welcome back. View your active portal based on your assigned role.
-    </p>
+    // Auto-redirect if already logged in
+    async function checkExistingAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        routeUser(session.user.id);
+      }
+    }
 
-    <div id="role-cards-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mt-8">
-      <div class="col-span-full text-center text-gray-400 py-8">Checking permissions...</div>
-    </div>
-  </main>
+    async function routeUser(userId) {
+      const { data: profile } = await supabase.from('profiles').select('role').or(`user_id.eq.${userId},id.eq.${userId}`).single();
+      const role = profile?.role?.toUpperCase() || 'DRIVER';
 
-  <footer class="bg-gray-800 border-t border-gray-700 text-center py-4 text-xs text-gray-500">
-    &copy; 2026 FleetFlow Logistics System. Powered by Supabase.
-  </footer>
+      if (role === 'DRIVER') {
+        window.location.href = 'driver-portal.html';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    }
 
-  <script>
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorAlert = document.getElementById('error-alert');
+      errorAlert.style.display = 'none';
 
-    async function init() {
-      // Auth Guard: Force login if unauthenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = 'login.html';
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        errorAlert.innerText = error.message;
+        errorAlert.style.display = 'block';
         return;
       }
+      
+      routeUser(data.user.id);
+    });
 
-      // Fetch Profile & Role directly from Supabase DB
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      const role = profile?.role || 'driver';
-      const name = profile?.full_name || user.email.split('@')[0];
-
-      document.getElementById('role-badge').innerText = role;
-      document.getElementById('user-display-name').innerText = name;
-      document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
-
-      renderRoleUI(role);
-    }
-
-    function renderRoleUI(role) {
-      const container = document.getElementById('role-cards-container');
-
-      if (role === 'driver') {
-        document.getElementById('nav-dashboard').classList.add('hidden');
-        document.getElementById('nav-loadboard').classList.add('hidden');
-
-        container.innerHTML = `
-          <div class="bg-gray-800 p-6 rounded-xl border border-yellow-500/30 col-span-full md:col-span-2">
-            <h2 class="text-2xl font-bold mb-2 text-yellow-400">Driver Portal</h2>
-            <p class="text-gray-300 text-sm mb-6">View your active assignments and update load statuses.</p>
-            <a href="driver-portal.html" class="inline-block bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-6 py-3 rounded-lg transition">
-              Go to Driver Portal &rarr;
-            </a>
-          </div>
-          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-            <h2 class="text-xl font-bold mb-2 text-blue-400">Profile Settings</h2>
-            <p class="text-gray-400 text-sm mb-6">Manage personal information and driver ID.</p>
-            <a href="profile.html" class="inline-block text-blue-400 font-semibold text-sm">View Profile &rarr;</a>
-          </div>`;
-
-      } else if (role === 'dispatcher') {
-        document.getElementById('nav-driver').classList.add('hidden');
-
-        container.innerHTML = `
-          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-            <h2 class="text-xl font-bold mb-2 text-blue-400">Dispatch Dashboard</h2>
-            <p class="text-gray-400 text-sm mb-6">Monitor live stats and operational load metrics.</p>
-            <a href="dashboard.html" class="inline-block text-blue-400 font-semibold text-sm">Open Dashboard &rarr;</a>
-          </div>
-          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 col-span-2">
-            <h2 class="text-xl font-bold mb-2 text-green-400">Loadboard Operations</h2>
-            <p class="text-gray-400 text-sm mb-6">Create new loads, assign drivers, and manage active shipments.</p>
-            <a href="loadboard.html" class="inline-block bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-3 rounded-lg transition">Open Loadboard &rarr;</a>
-          </div>`;
-
-      } else if (role === 'admin') {
-        // Admin Sees Everything
-        container.innerHTML = `
-          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-            <h2 class="text-xl font-bold mb-2 text-blue-400">Dispatch Dashboard</h2>
-            <p class="text-gray-400 text-sm mb-6">System overview and analytics.</p>
-            <a href="dashboard.html" class="inline-block text-blue-400 font-semibold text-sm">Open &rarr;</a>
-          </div>
-          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-            <h2 class="text-xl font-bold mb-2 text-green-400">Loadboard</h2>
-            <p class="text-gray-400 text-sm mb-6">Post and edit all freight entries.</p>
-            <a href="loadboard.html" class="inline-block text-green-400 font-semibold text-sm">Open &rarr;</a>
-          </div>
-          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-            <h2 class="text-xl font-bold mb-2 text-yellow-400">Driver Portal View</h2>
-            <p class="text-gray-400 text-sm mb-6">Review driver portal assignments.</p>
-            <a href="driver-portal.html" class="inline-block text-yellow-400 font-semibold text-sm">Open &rarr;</a>
-          </div>`;
-      }
-    }
-
-    async function handleLogout() {
-      await supabase.auth.signOut();
-      window.location.href = 'login.html';
-    }
-
-    init();
+    checkExistingAuth();
   </script>
 </body>
 </html>
