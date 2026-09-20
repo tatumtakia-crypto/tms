@@ -1,134 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Driver Portal</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastermind Matrix - Driver Terminal Pro</title>
+  <style>
+    :root {
+      --bg-primary: #060911;
+      --bg-surface: #0f1626;
+      --bg-card: #141f36;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --metallic-blue: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+      --metallic-silver: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
+      --border-metallic: 1px solid rgba(148, 163, 184, 0.25);
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-main); padding: 1rem; max-width: 500px; margin: 0 auto; }
+    .brand-header { text-align: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: var(--border-metallic); }
+    .brand-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 2px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+    .brand-subtitle { font-size: 0.65rem; color: #06b6d4; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 4px; }
+    
+    .driver-badge-card { background: var(--bg-surface); border: var(--border-metallic); padding: 0.85rem 1rem; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .driver-badge-card .info { font-size: 0.85rem; font-weight: 700; }
+    
+    .load-card { background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+    .load-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--metallic-blue); }
+    .load-card h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: #ffffff; letter-spacing: 0.5px; font-weight: 800; }
+    .load-card p { margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-muted); }
+    .load-card p strong { color: var(--text-main); }
+    
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; }
+    .btn-driver { padding: 0.875rem; font-size: 0.9rem; font-weight: 700; border-radius: 0.5rem; border: var(--border-metallic); background: var(--metallic-blue); color: white; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-driver:hover { filter: brightness(1.2); box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
+    .btn-secondary { background: #1e293b; color: var(--text-main); }
+    .btn-logout { background: #ef4444; color: white; border: none; padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.35rem; cursor: pointer; }
+    .btn-admin-nav { display: block; text-align: center; background: #059669; color: white; text-decoration: none; padding: 0.75rem; font-weight: 800; border-radius: 0.5rem; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.85rem; }
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body>
+  <div class="brand-header">
+    <div class="brand-title">Mastermind Matrix</div>
+    <div class="brand-subtitle">The Black Label • Mobile Driver Terminal</div>
+  </div>
 
-  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-    <div class="flex items-center space-x-3">
-      <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
-      <span id="role-badge" class="text-xs bg-yellow-900 text-yellow-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">Driver Portal</span>
+  <div class="driver-badge-card">
+    <div class="info">
+      <div id="driver-name">Loading Driver...</div>
+      <div id="driver-role" style="font-size: 0.7rem; color: #06b6d4;">DRIVER</div>
     </div>
+    <button class="btn-logout" id="logout-btn">LOGOUT</button>
+  </div>
 
-    <div class="flex space-x-6 text-sm font-medium">
-      <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
-      <a href="dashboard.html" id="nav-dashboard" class="text-gray-300 hover:text-white transition">Dashboard</a>
-      <a href="loadboard.html" id="nav-loadboard" class="text-gray-300 hover:text-white transition">Loadboard</a>
-      <a href="driver-portal.html" class="text-yellow-400 font-bold">Driver Portal</a>
+  <a href="dashboard.html" id="admin-dashboard-link" class="btn-admin-nav" style="display: none;">
+    &larr; Switch to Admin/Dispatcher Dashboard
+  </a>
+
+  <div id="assigned-loads-container">
+    <div class="load-card">
+      <h3>Active Load #MM-8012</h3>
+      <p><strong>Shipper / Broker:</strong> Amazon Relay Direct</p>
+      <p><strong>Facility Pickup:</strong> Chicago Fulfillment Hub (Gate 4)</p>
+      <p><strong>Delivery Destination:</strong> Columbus Sort Center</p>
+      <p><strong>Telemetry Status:</strong> <span style="color:var(--success); font-weight:700;">GPS Active / En Route</span></p>
+      <div class="action-grid">
+        <button class="btn-driver" onclick="alert('Smart Geofence Check-In Confirmed at Facility Gate')">Facility Check-In</button>
+        <button class="btn-driver" onclick="alert('Telemetry Update: Departed Facility')">Departed Facility</button>
+        <button class="btn-driver" onclick="alert('Status updated: Delivered & Signed')">Mark Delivered</button>
+        <button class="btn-driver btn-secondary" onclick="alert('Scanning POD via AI Camera OCR...')">Scan & Upload POD</button>
+      </div>
     </div>
+  </div>
 
-    <div class="flex items-center space-x-3 text-sm">
-      <a href="profile.html" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg border border-gray-600 transition">
-        <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
-        <span id="user-display-name" class="font-medium">Profile</span>
-      </a>
-      <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-        Logout
-      </button>
-    </div>
-  </nav>
-
-  <main class="max-w-4xl mx-auto px-6 py-8">
-    <h1 class="text-3xl font-bold mb-6">Assigned Driver Loads</h1>
-
-    <!-- Filter Bar (Admins can view all or search specific drivers) -->
-    <div id="filter-bar" class="bg-gray-800 p-4 rounded-xl mb-6 border border-gray-700 flex items-center space-x-3">
-      <label class="text-sm font-medium text-gray-300">Filtering Driver ID:</label>
-      <input type="text" id="driver-filter" class="bg-gray-700 text-white px-3 py-1.5 rounded-lg border border-gray-600 text-sm" />
-      <button onclick="fetchDriverLoads()" class="bg-yellow-600 hover:bg-yellow-500 px-4 py-1.5 rounded-lg text-sm font-medium">Filter</button>
-    </div>
-
-    <div id="driver-loads-container" class="space-y-4">
-      <div class="text-center py-10 text-gray-400">Loading assigned loads...</div>
-    </div>
-  </main>
-
-  <script>
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let loggedInUser = null;
-    let userRole = 'driver';
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function initDriverPortal() {
-      // Require Authentication
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = 'login.html';
+      // Require Login
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
         return;
       }
 
-      loggedInUser = user;
+      const user = session.user;
 
-      // Fetch Profile from Supabase
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      userRole = profile?.role || 'driver';
-      const name = profile?.full_name || user.email.split('@')[0];
+      // Pull Profile Info from Supabase
+      const { data: profile } = await supabase.from('profiles').select('*').or(`user_id.eq.${user.id},id.eq.${user.id}`).single();
+      const role = (profile?.role || 'DRIVER').toUpperCase();
+      const fullName = profile?.full_name || profile?.name || user.email.split('@')[0];
 
-      document.getElementById('role-badge').innerText = userRole;
-      document.getElementById('user-display-name').innerText = name;
-      document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
+      document.getElementById('driver-name').innerText = fullName;
+      document.getElementById('driver-role').innerText = role;
 
-      if (userRole === 'driver') {
-        document.getElementById('nav-dashboard').classList.add('hidden');
-        document.getElementById('nav-loadboard').classList.add('hidden');
-        document.getElementById('driver-filter').value = user.id;
-        document.getElementById('driver-filter').disabled = true; // Lock filter to logged-in driver
+      // If user is Admin or Dispatcher, show option to return to business dashboard
+      if (role === 'ADMIN' || role === 'DISPATCHER') {
+        document.getElementById('admin-dashboard-link').style.display = 'block';
       }
-
-      fetchDriverLoads();
     }
 
-    async function fetchDriverLoads() {
-      const targetDriverId = document.getElementById('driver-filter').value.trim() || loggedInUser.id;
-      const container = document.getElementById('driver-loads-container');
-
-      const { data: loads } = await supabase
-        .from('loads')
-        .select('*')
-        .eq('driver_id', targetDriverId)
-        .order('created_at', { ascending: false });
-
-      if (!loads || loads.length === 0) {
-        container.innerHTML = `<div class="text-center py-10 text-gray-500 bg-gray-800 rounded-xl border border-gray-700">No loads currently assigned to this driver ID.</div>`;
-        return;
-      }
-
-      container.innerHTML = loads.map(load => `
-        <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 space-y-3">
-          <div class="flex justify-between items-center">
-            <span class="text-xs px-2.5 py-1 rounded font-bold uppercase ${
-              load.status === 'delivered' ? 'bg-green-900 text-green-300' : 'bg-blue-900 text-blue-300'
-            }">${load.status || 'assigned'}</span>
-            <span class="text-lg font-extrabold text-green-400">$${load.rate}</span>
-          </div>
-          <h2 class="text-xl font-bold">${load.origin} ➔ ${load.destination}</h2>
-          <div class="pt-3 border-t border-gray-700 flex justify-between items-center">
-            <span class="text-xs text-gray-400">Update Status:</span>
-            <div class="space-x-2">
-              <button onclick="updateLoadStatus('${load.id}', 'in_transit')" class="px-3 py-1 bg-yellow-600 text-xs rounded">In Transit</button>
-              <button onclick="updateLoadStatus('${load.id}', 'delivered')" class="px-3 py-1 bg-green-600 text-xs rounded">Delivered</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function updateLoadStatus(loadId, newStatus) {
-      await supabase.from('loads').update({ status: newStatus }).eq('id', loadId);
-      fetchDriverLoads();
-    }
-
-    async function handleLogout() {
+    document.getElementById('logout-btn').addEventListener('click', async () => {
       await supabase.auth.signOut();
-      window.location.href = 'login.html';
-    }
+      window.location.href = 'index.html';
+    });
 
     initDriverPortal();
   </script>
