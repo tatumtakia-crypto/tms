@@ -9,7 +9,6 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-  <!-- Navigation Bar -->
   <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
     <div class="flex items-center space-x-3">
       <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
@@ -18,12 +17,11 @@
 
     <div class="flex space-x-6 text-sm font-medium">
       <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
-      <a href="dashboard.html" class="text-gray-300 hover:text-white transition">Dashboard</a>
-      <a href="loadboard.html" class="text-gray-300 hover:text-white transition">Loadboard</a>
+      <a href="dashboard.html" id="nav-dashboard" class="text-gray-300 hover:text-white transition">Dashboard</a>
+      <a href="loadboard.html" id="nav-loadboard" class="text-gray-300 hover:text-white transition">Loadboard</a>
       <a href="driver-portal.html" class="text-yellow-400 font-bold">Driver Portal</a>
     </div>
 
-    <!-- User Profile & Logout -->
     <div class="flex items-center space-x-3 text-sm">
       <a href="profile.html" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg border border-gray-600 transition">
         <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
@@ -36,33 +34,17 @@
   </nav>
 
   <main class="max-w-4xl mx-auto px-6 py-8">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-      <div>
-        <h1 class="text-3xl font-bold">Driver Load Management</h1>
-        <p class="text-sm text-gray-400 mt-1">View assigned loads or filter by Driver ID directly from Supabase.</p>
-      </div>
-      <a href="loadboard.html" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-        Browse Main Loadboard
-      </a>
+    <h1 class="text-3xl font-bold mb-6">Assigned Driver Loads</h1>
+
+    <!-- Filter Bar (Admins can view all or search specific drivers) -->
+    <div id="filter-bar" class="bg-gray-800 p-4 rounded-xl mb-6 border border-gray-700 flex items-center space-x-3">
+      <label class="text-sm font-medium text-gray-300">Filtering Driver ID:</label>
+      <input type="text" id="driver-filter" class="bg-gray-700 text-white px-3 py-1.5 rounded-lg border border-gray-600 text-sm" />
+      <button onclick="fetchDriverLoads()" class="bg-yellow-600 hover:bg-yellow-500 px-4 py-1.5 rounded-lg text-sm font-medium">Filter</button>
     </div>
 
-    <!-- Driver Filter Box -->
-    <div class="bg-gray-800 p-4 rounded-xl mb-6 border border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4">
-      <div class="flex items-center space-x-3 w-full sm:w-auto">
-        <label class="text-sm font-medium text-gray-300 whitespace-nowrap">Driver ID:</label>
-        <input type="text" id="driver-filter" placeholder="Enter Driver UUID or ID" class="w-full sm:w-64 bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-blue-500" />
-        <button onclick="fetchDriverLoads()" class="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-          Filter
-        </button>
-      </div>
-      <button onclick="clearFilter()" class="text-xs text-gray-400 hover:text-gray-200 underline">
-        Show All Loads
-      </button>
-    </div>
-
-    <!-- Container for Loads -->
     <div id="driver-loads-container" class="space-y-4">
-      <div class="text-center py-10 text-gray-400">Loading driver loads...</div>
+      <div class="text-center py-10 text-gray-400">Loading assigned loads...</div>
     </div>
   </main>
 
@@ -71,58 +53,50 @@
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const container = document.getElementById('driver-loads-container');
-    let currentUserId = null;
+    let loggedInUser = null;
+    let userRole = 'driver';
 
     async function initDriverPortal() {
+      // Require Authentication
       const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        currentUserId = user.id;
-        const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single();
-        const role = profile?.role || user.user_metadata?.role || 'driver';
-        const name = profile?.full_name || user.email.split('@')[0];
-
-        document.getElementById('role-badge').innerText = role;
-        document.getElementById('user-display-name').innerText = name;
-        document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
-
-        // Auto-fill logged-in driver's ID
-        document.getElementById('driver-filter').value = user.id;
-      }
-
-      fetchDriverLoads();
-      subscribeDriverRealtime();
-    }
-
-    async function fetchDriverLoads() {
-      const driverId = document.getElementById('driver-filter').value.trim();
-      container.innerHTML = `<div class="text-center py-10 text-gray-400">Fetching loads from Supabase...</div>`;
-
-      let query = supabase.from('loads').select('*').order('created_at', { ascending: false });
-
-      if (driverId) {
-        query = query.eq('driver_id', driverId);
-      }
-
-      const { data: loads, error } = await query;
-
-      if (error) {
-        console.error('Error fetching driver loads:', error);
-        container.innerHTML = `<div class="text-red-400 text-center py-6">Failed to load data from Supabase.</div>`;
+      if (!user) {
+        window.location.href = 'login.html';
         return;
       }
 
-      renderDriverLoads(loads);
+      loggedInUser = user;
+
+      // Fetch Profile from Supabase
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      userRole = profile?.role || 'driver';
+      const name = profile?.full_name || user.email.split('@')[0];
+
+      document.getElementById('role-badge').innerText = userRole;
+      document.getElementById('user-display-name').innerText = name;
+      document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
+
+      if (userRole === 'driver') {
+        document.getElementById('nav-dashboard').classList.add('hidden');
+        document.getElementById('nav-loadboard').classList.add('hidden');
+        document.getElementById('driver-filter').value = user.id;
+        document.getElementById('driver-filter').disabled = true; // Lock filter to logged-in driver
+      }
+
+      fetchDriverLoads();
     }
 
-    function renderDriverLoads(loads) {
+    async function fetchDriverLoads() {
+      const targetDriverId = document.getElementById('driver-filter').value.trim() || loggedInUser.id;
+      const container = document.getElementById('driver-loads-container');
+
+      const { data: loads } = await supabase
+        .from('loads')
+        .select('*')
+        .eq('driver_id', targetDriverId)
+        .order('created_at', { ascending: false });
+
       if (!loads || loads.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-10 text-gray-400 bg-gray-800 rounded-xl border border-gray-700">
-            <p class="mb-4">No loads found for this driver ID.</p>
-            <a href="loadboard.html" class="text-blue-400 hover:underline text-sm font-semibold">View Live Loadboard &rarr;</a>
-          </div>`;
+        container.innerHTML = `<div class="text-center py-10 text-gray-500 bg-gray-800 rounded-xl border border-gray-700">No loads currently assigned to this driver ID.</div>`;
         return;
       }
 
@@ -130,28 +104,16 @@
         <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 space-y-3">
           <div class="flex justify-between items-center">
             <span class="text-xs px-2.5 py-1 rounded font-bold uppercase ${
-              load.status === 'delivered' ? 'bg-green-900 text-green-300' :
-              load.status === 'in_transit' ? 'bg-yellow-900 text-yellow-300' : 'bg-blue-900 text-blue-300'
-            }">
-              ${load.status || 'available'}
-            </span>
+              load.status === 'delivered' ? 'bg-green-900 text-green-300' : 'bg-blue-900 text-blue-300'
+            }">${load.status || 'assigned'}</span>
             <span class="text-lg font-extrabold text-green-400">$${load.rate}</span>
           </div>
-
-          <div>
-            <h2 class="text-xl font-bold">${load.origin} ➔ ${load.destination}</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Load ID: ${load.id} | Assigned Driver: ${load.driver_id || 'Unassigned'}</p>
-          </div>
-
+          <h2 class="text-xl font-bold">${load.origin} ➔ ${load.destination}</h2>
           <div class="pt-3 border-t border-gray-700 flex justify-between items-center">
-            <span class="text-xs text-gray-400">Update Shipment Status:</span>
+            <span class="text-xs text-gray-400">Update Status:</span>
             <div class="space-x-2">
-              <button onclick="updateLoadStatus('${load.id}', 'in_transit')" class="px-3 py-1 bg-yellow-600 hover:bg-yellow-500 text-xs rounded font-medium transition">
-                In Transit
-              </button>
-              <button onclick="updateLoadStatus('${load.id}', 'delivered')" class="px-3 py-1 bg-green-600 hover:bg-green-500 text-xs rounded font-medium transition">
-                Delivered
-              </button>
+              <button onclick="updateLoadStatus('${load.id}', 'in_transit')" class="px-3 py-1 bg-yellow-600 text-xs rounded">In Transit</button>
+              <button onclick="updateLoadStatus('${load.id}', 'delivered')" class="px-3 py-1 bg-green-600 text-xs rounded">Delivered</button>
             </div>
           </div>
         </div>
@@ -159,32 +121,13 @@
     }
 
     async function updateLoadStatus(loadId, newStatus) {
-      const { error } = await supabase
-        .from('loads')
-        .update({ status: newStatus })
-        .eq('id', loadId);
-
-      if (error) {
-        alert('Failed to update load: ' + error.message);
-      } else {
-        fetchDriverLoads();
-      }
-    }
-
-    function clearFilter() {
-      document.getElementById('driver-filter').value = '';
+      await supabase.from('loads').update({ status: newStatus }).eq('id', loadId);
       fetchDriverLoads();
-    }
-
-    function subscribeDriverRealtime() {
-      supabase.channel('driver:loads')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'loads' }, () => fetchDriverLoads())
-        .subscribe();
     }
 
     async function handleLogout() {
       await supabase.auth.signOut();
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     }
 
     initDriverPortal();
