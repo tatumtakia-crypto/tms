@@ -1,112 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mastermind Matrix - Driver Terminal Pro</title>
-  <style>
-    :root {
-      --bg-primary: #060911;
-      --bg-surface: #0f1626;
-      --bg-card: #141f36;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --metallic-blue: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
-      --metallic-silver: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
-      --border-metallic: 1px solid rgba(148, 163, 184, 0.25);
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --accent-cyan: #06b6d4;
-    }
-    * { box-sizing: border-box;Here is a complete React/TypeScript component that fetches and displays real data directly from your Supabase `loads` table with no mock data or placeholder fallbacks.
-
-```tsx
-import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-
-// Initialize Supabase client
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || ''
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-// Define Load interface matching your Supabase table schema
-export interface Load {
-  id: string | number
-  origin: string
-  destination: string
-  status: string
-  rate?: number
-  created_at?: string
-  [key: string]: any // Allows for additional custom columns
-}
-
-export default function SupabaseLoadsList() {
-  const [loads, setLoads] = useState<Load[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function fetchLoads() {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const { data, error: supabaseError } = await supabase
-          .from('loads')
-          .select('*')
-
-        if (supabaseError) {
-          throw supabaseError
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Portal - Delivery Management</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --warning: #ca8a04;
         }
 
-        setLoads(data || [])
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch loads from Supabase')
-      } finally {
-        setLoading(false)
-      }
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
-    fetchLoads()
-  }, [])
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
 
-  if (loading) {
-    return <div className="p-4 text-gray-600">Loading loads from database...</div>
-  }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-  if (error) {
-    return <div className="p-4 text-red-600">Error loading data: {error}</div>
-  }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
 
-  if (loads.length === 0) {
-    return <div className="p-4 text-gray-500">No loads found in the database.</div>
-  }
+        h1 {
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
 
-  return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Active Loads ({loads.length})</h2>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {loads.map((load) => (
-          <div key={load.id} className="border rounded-lg p-4 shadow-sm bg-white">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-semibold text-lg">Load #{load.id}</span>
-              {load.status && (
-                <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800 uppercase font-medium">
-                  {load.status}
-                </span>
-              )}
+        .status-badge {
+            background-color: #dcfce7;
+            color: var(--success);
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .card-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .delivery-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+        }
+
+        .detail-label {
+            color: var(--text-sub);
+        }
+
+        .detail-value {
+            font-weight: 500;
+        }
+
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: var(--primary);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .status-tracker {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            position: relative;
+        }
+
+        .status-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            z-index: 1;
+        }
+
+        .status-step.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .step-node {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: var(--border);
+            margin-bottom: 4px;
+        }
+
+        .status-step.active .step-node {
+            background-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Driver Portal</h1>
+            <span style="font-size: 0.85rem; color: var(--text-sub);">Driver ID: #DRV-8821</span>
+        </div>
+        <span class="status-badge">On Duty</span>
+    </header>
+
+    <div class="card">
+        <div class="card-header">Current Active Assignment</div>
+        <div class="delivery-details">
+            <div class="detail-row">
+                <span class="detail-label">Order ID:</span>
+                <span class="detail-value" id="order-id">ORD-9402</span>
             </div>
-            <div className="text-sm text-gray-700 space-y-1">
-              <p><strong>Origin:</strong> {load.origin || 'N/A'}</p>
-              <p><strong>Destination:</strong> {load.destination || 'N/A'}</p>
-              {load.rate !== undefined && (
-                <p><strong>Rate:</strong> ${load.rate}</p>
-              )}
+            <div class="detail-row">
+                <span class="detail-label">Pickup Location:</span>
+                <span class="detail-value">Main Warehouse (Bay 4)</span>
             </div>
-          </div>
-        ))}
-      </div>
+            <div class="detail-row">
+                <span class="detail-label">Drop-off Destination:</span>
+                <span class="detail-value">742 Evergreen Terrace</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Estimated Delivery:</span>
+                <span class="detail-value">10:45 AM</span>
+            </div>
+        </div>
+
+        <div class="status-tracker">
+            <div class="status-step active">
+                <div class="step-node"></div>
+                <span>Assigned</span>
+            </div>
+            <div class="status-step active">
+                <div class="step-node"></div>
+                <span>Picked Up</span>
+            </div>
+            <div class="status-step">
+                <div class="step-node"></div>
+                <span>In Transit</span>
+            </div>
+            <div class="status-step">
+                <div class="step-node"></div>
+                <span>Delivered</span>
+            </div>
+        </div>
     </div>
-  )
-}
+
+    <div class="card">
+        <div class="card-header">Update Status</div>
+        <div class="action-group">
+            <button class="btn" id="btn-transit">Mark as In Transit</button>
+            <button class="btn btn-success" id="btn-delivered">Complete Delivery</button>
+            <button class="btn btn-secondary" id="btn-issue">Report Issue</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('btn-transit').addEventListener('click', function() {
+        alert('Status updated: In Transit');
+    });
+
+    document.getElementById('btn-delivered').addEventListener('click', function() {
+        alert('Status updated: Delivery Completed');
+    });
+
+    document.getElementById('btn-issue').addEventListener('click', function() {
+        prompt('Please describe the issue encountered:');
+    });
+</script>
+
+</body>
+</html>
