@@ -9,7 +9,6 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-  <!-- Navigation Bar -->
   <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
     <div class="flex items-center space-x-3">
       <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
@@ -19,11 +18,10 @@
     <div class="flex space-x-6 text-sm font-medium">
       <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
       <a href="dashboard.html" class="text-blue-400 font-bold">Dashboard</a>
-      <a href="loadboard.html" id="loadboard-nav" class="text-gray-300 hover:text-white transition">Loadboard</a>
-      <a href="driver-portal.html" class="text-gray-300 hover:text-white transition">Driver Portal</a>
+      <a href="loadboard.html" class="text-gray-300 hover:text-white transition">Loadboard</a>
+      <a href="driver-portal.html" id="nav-driver" class="text-gray-300 hover:text-white transition">Driver Portal</a>
     </div>
 
-    <!-- User Profile & Logout -->
     <div class="flex items-center space-x-3 text-sm">
       <a href="profile.html" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg border border-gray-600 transition">
         <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
@@ -36,25 +34,16 @@
   </nav>
 
   <main class="max-w-6xl mx-auto px-6 py-8">
-    <!-- Dynamic Role Banner -->
-    <div id="role-banner" class="hidden mb-6 p-4 rounded-xl border bg-yellow-900/30 border-yellow-600 text-yellow-200">
-      <p class="text-sm font-semibold">Driver View Notice: You are accessing the system in Driver mode. Detailed dispatch tools are restricted to Dispatchers and Administrators.</p>
-    </div>
-
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <div class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-3xl font-bold" id="dashboard-title">Dispatch Overview</h1>
-        <p class="text-gray-400 text-sm mt-1" id="dashboard-subtitle">Real-time system stats synced with Supabase</p>
+        <h1 class="text-3xl font-bold">Dispatch Overview</h1>
+        <p class="text-gray-400 text-sm mt-1">Live metrics synced with Supabase</p>
       </div>
-      <div class="flex space-x-3" id="dispatch-actions">
-        <a href="loadboard.html" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-          + Post Load on Loadboard
-        </a>
-      </div>
+      <a href="loadboard.html" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+        + Post Load on Loadboard
+      </a>
     </div>
 
-    <!-- Live Supabase Summary Metrics -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <div class="bg-gray-800 p-5 rounded-xl border border-gray-700">
         <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Loads</p>
@@ -73,17 +62,6 @@
         <p id="stat-delivered" class="text-3xl font-bold mt-2 text-blue-400">--</p>
       </div>
     </div>
-
-    <!-- Management Navigation Card -->
-    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div>
-        <h2 class="text-xl font-bold">Freight Operations Center</h2>
-        <p class="text-gray-400 text-sm mt-1">Manage active routes, dispatch drivers, and monitor status updates on the loadboard.</p>
-      </div>
-      <a href="loadboard.html" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg transition whitespace-nowrap">
-        Go to Loadboard &rarr;
-      </a>
-    </div>
   </main>
 
   <script>
@@ -91,39 +69,34 @@
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let userRole = 'driver';
-
     async function initDashboard() {
+      // Require Authentication
       const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single();
-        userRole = profile?.role || user.user_metadata?.role || 'driver';
-        const name = profile?.full_name || user.email.split('@')[0];
-
-        document.getElementById('role-badge').innerText = userRole;
-        document.getElementById('user-display-name').innerText = name;
-        document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
-
-        if (userRole === 'driver') {
-          document.getElementById('role-banner').classList.remove('hidden');
-          document.getElementById('dispatch-actions').classList.add('hidden');
-          document.getElementById('dashboard-title').innerText = 'Driver Overview';
-          document.getElementById('dashboard-subtitle').innerText = 'Summary of active system metrics for your driver account';
-        }
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
       }
+
+      // Fetch Profile from Supabase
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const role = profile?.role || 'driver';
+
+      // Redirect Drivers Away from Dispatcher Dashboard
+      if (role === 'driver') {
+        window.location.href = 'driver-portal.html';
+        return;
+      }
+
+      const name = profile?.full_name || user.email.split('@')[0];
+      document.getElementById('role-badge').innerText = role;
+      document.getElementById('user-display-name').innerText = name;
+      document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
 
       loadMetrics();
     }
 
     async function loadMetrics() {
-      const { data: loads, error } = await supabase.from('loads').select('status');
-
-      if (error) {
-        console.error('Error fetching dashboard stats:', error);
-        return;
-      }
-
+      const { data: loads } = await supabase.from('loads').select('status');
       if (loads) {
         document.getElementById('stat-total').innerText = loads.length;
         document.getElementById('stat-available').innerText = loads.filter(l => l.status === 'available' || !l.status).length;
@@ -134,7 +107,7 @@
 
     async function handleLogout() {
       await supabase.auth.signOut();
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     }
 
     initDashboard();
