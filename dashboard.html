@@ -48,6 +48,7 @@
     .btn { background: var(--metallic-blue); color: white; border: var(--border-metallic); padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; text-decoration: none; display: inline-block; }
     .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
     .btn-secondary { background: #1e293b; color: var(--text-main); }
+    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); }
     .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
 
     .content-area { padding: 1rem 2rem 2rem 2rem; }
@@ -104,24 +105,24 @@
       <header class="top-header">
         <h2 id="view-title" style="font-size: 1.25rem; font-weight: 800; letter-spacing: 1px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Enterprise Dispatch Command</h2>
         <div>
-          <button class="btn" id="logout-btn" style="background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);">Terminate Session</button>
+          <button class="btn btn-danger" id="logout-btn">Terminate Session</button>
         </div>
       </header>
 
       <div id="main-view-container">
-        <!-- Default Dashboard View -->
+        <!-- Default Command Center View -->
         <div class="dashboard-grid">
           <div class="card">
             <h3>Active Telemetry Fleets</h3>
             <div class="metric-value">14 / 14</div>
           </div>
           <div class="card">
-            <h3>Driver Docs Pending</h3>
-            <div class="metric-value" style="color: var(--warning);" id="metric-docs-pending">2</div>
+            <h3>Driver Profiles Loaded</h3>
+            <div class="metric-value" style="color: #38bdf8;" id="metric-driver-count">0</div>
           </div>
           <div class="card">
-            <h3>Average RPM (Spot)</h3>
-            <div class="metric-value" style="color: #38bdf8;">$3.42</div>
+            <h3>Active Load Board Loads</h3>
+            <div class="metric-value" style="color: var(--warning);" id="metric-loads-count">0</div>
           </div>
           <div class="card">
             <h3>Gross Revenue (MTD)</h3>
@@ -131,42 +132,67 @@
         
         <div class="content-area">
           <div class="section-title">
-            <span>Active Spot & Contract Matrix</span>
-            <button class="btn" onclick="alert('Launching Instant Load Creator...')">+ Post New Load</button>
+            <span>Active Spot & Contract Freight Matrix</span>
+            <button class="btn" onclick="openNewLoadModal()">+ Post New Load</button>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Load ID</th>
-                <th>Shipper / Broker</th>
-                <th>Lane (Origin → Destination)</th>
-                <th>Equipment</th>
-                <th>Rate / RPM</th>
-                <th>Telemetry Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>MM-8012</strong></td>
-                <td>Amazon Relay Direct</td>
-                <td>Chicago, IL → Columbus, OH</td>
-                <td>53' Dry Van</td>
-                <td>$1,850 ($3.65/mi)</td>
-                <td><span style="color:var(--success); font-weight:700;">● In Transit (GPS Active)</span></td>
-              </tr>
-              <tr>
-                <td><strong>MM-8013</strong></td>
-                <td>Uber Freight Spot</td>
-                <td>Atlanta, GA → Charlotte, NC</td>
-                <td>53' Reefer</td>
-                <td>$1,420 ($3.20/mi)</td>
-                <td><span style="color:var(--warning); font-weight:700;">● Facility Check-In</span></td>
-              </tr>
-            </tbody>
-          </table>
+          <div id="command-load-table-container">
+            <!-- Rendered dynamically -->
+          </div>
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- POST NEW LOAD MODAL -->
+  <div class="modal-overlay" id="load-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Post New Freight Load</h2>
+        <button class="close-btn" onclick="closeLoadModal()">&times;</button>
+      </div>
+      <form id="post-load-form" onsubmit="handlePostLoadSubmit(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Shipper / Broker Name</label>
+            <input type="text" id="load-broker" placeholder="e.g. Amazon Relay, CH Robinson" required>
+          </div>
+          <div class="form-group">
+            <label>Equipment Type</label>
+            <select id="load-equipment">
+              <option value="53' Dry Van">53' Dry Van</option>
+              <option value="53' Reefer">53' Reefer</option>
+              <option value="Flatbed">Flatbed</option>
+              <option value="Power Only">Power Only</option>
+              <option value="Step Deck">Step Deck</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Origin Location</label>
+            <input type="text" id="load-origin" placeholder="e.g. Chicago, IL" required>
+          </div>
+          <div class="form-group">
+            <label>Destination Location</label>
+            <input type="text" id="load-destination" placeholder="e.g. Nashville, TN" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Gross Rate ($)</label>
+            <input type="number" id="load-rate" placeholder="e.g. 2450" required>
+          </div>
+          <div class="form-group">
+            <label>Total Miles</label>
+            <input type="number" id="load-miles" placeholder="e.g. 470" required>
+          </div>
+        </div>
+        <div style="text-align: right; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-secondary" onclick="closeLoadModal()">Cancel</button>
+          <button type="submit" class="btn" style="margin-left: 0.5rem;">Publish to Loadboard</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- DRIVER DOC VAULT MODAL -->
@@ -210,7 +236,7 @@
       </div>
 
       <!-- Document Vault List -->
-      <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;">Stored Documents</h3>
+      <h3 style="font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem;">Stored Compliance Documents</h3>
       <table>
         <thead>
           <tr>
@@ -236,47 +262,11 @@
 
     let activeDriverId = null;
 
-    // Master state store for driver profiles & uploaded documents
-    let driversList = [
-      {
-        id: 'DRV-101',
-        name: 'Marcus Vance',
-        phone: '(555) 234-5678',
-        email: 'marcus.vance@carrier.com',
-        cdl: 'CDL-TX-9842109',
-        equipment: "53' Dry Van (#4081)",
-        status: 'COMPLIANT',
-        documents: [
-          { id: 'doc-1', title: 'Commercial Driver License (CDL)', type: 'CDL License', uploaded: '2026-01-15', expires: '2028-12-16', file_url: '#', status: 'VALID' },
-          { id: 'doc-2', title: 'DOT Medical Examiner Certificate', type: 'Medical Examiner Certificate', uploaded: '2026-02-10', expires: '2027-02-10', file_url: '#', status: 'VALID' },
-          { id: 'doc-3', title: 'Annual MVR Background Check', type: 'Annual MVR', uploaded: '2025-08-12', expires: '2026-08-12', file_url: '#', status: 'EXPIRED' }
-        ]
-      },
-      {
-        id: 'DRV-102',
-        name: 'Elena Rostova',
-        phone: '(555) 876-5432',
-        email: 'elena.rostova@carrier.com',
-        cdl: 'CDL-IL-1102938',
-        equipment: "53' Reefer (#2214)",
-        status: 'ACTION REQUIRED',
-        documents: [
-          { id: 'doc-4', title: 'Commercial Driver License (CDL)', type: 'CDL License', uploaded: '2025-04-10', expires: '2026-10-15', file_url: '#', status: 'EXPIRING SOON' }
-        ]
-      },
-      {
-        id: 'DRV-103',
-        name: 'Derrick Miller',
-        phone: '(555) 345-6789',
-        email: 'derrick.m@carrier.com',
-        cdl: 'CDL-GA-7761204',
-        equipment: 'Flatbed (#1090)',
-        status: 'COMPLIANT',
-        documents: [
-          { id: 'doc-5', title: 'Commercial Driver License (CDL)', type: 'CDL License', uploaded: '2026-03-01', expires: '2029-03-01', file_url: '#', status: 'VALID' },
-          { id: 'doc-6', title: 'DOT Medical Examiner Certificate', type: 'Medical Examiner Certificate', uploaded: '2026-03-01', expires: '2028-03-01', file_url: '#', status: 'VALID' }
-        ]
-      }
+    // Live state arrays (NO embedded mock drivers)
+    let driversList = [];
+    let loadsList = [
+      { id: 'MM-8012', broker: 'Amazon Relay Direct', origin: 'Chicago, IL', destination: 'Columbus, OH', equipment: "53' Dry Van", rate: 1850, miles: 507, status: 'IN_TRANSIT' },
+      { id: 'MM-8013', broker: 'Uber Freight Spot', origin: 'Atlanta, GA', destination: 'Charlotte, NC', equipment: "53' Reefer", rate: 1420, miles: 444, status: 'AVAILABLE' }
     ];
 
     async function initDashboard() {
@@ -300,19 +290,77 @@
       document.getElementById('user-fullname').innerText = fullName;
       document.getElementById('user-role-badge').innerText = role;
 
-      // Sync drivers & documents from Supabase DB if tables exist
+      // Fetch driver profiles directly from Supabase
       await fetchDriverProfilesFromSupabase();
+      await fetchLoadsFromSupabase();
+      
+      updateMetricCounters();
+      renderCommandLoadsTable();
     }
 
+    // Fetch Driver Profiles directly from Supabase profiles table where role is driver
     async function fetchDriverProfilesFromSupabase() {
       try {
-        const { data: drivers, error } = await supabase.from('driver_profiles').select('*, driver_documents(*)');
-        if (!error && drivers && drivers.length > 0) {
-          driversList = drivers;
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('*, driver_documents(*)')
+          .ilike('role', 'driver');
+
+        if (!error && profiles) {
+          driversList = profiles.map(p => ({
+            id: p.id || p.user_id,
+            name: p.full_name || p.name || p.email || 'Unnamed Driver',
+            phone: p.phone || '(555) 000-0000',
+            email: p.email || 'driver@carrier.com',
+            cdl: p.cdl_number || p.cdl || 'CDL-PENDING',
+            equipment: p.assigned_unit || p.equipment || 'Unassigned',
+            status: p.status || 'COMPLIANT',
+            documents: (p.driver_documents || []).map(doc => ({
+              id: doc.id,
+              title: doc.document_type || doc.title,
+              type: doc.document_type || 'Compliance Doc',
+              uploaded: doc.created_at ? doc.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+              expires: doc.expiration_date || 'N/A',
+              file_url: doc.file_path ? supabase.storage.from('driver-documents').getPublicUrl(doc.file_path).data?.publicUrl : '#',
+              status: doc.status || 'VALID'
+            }))
+          }));
+        } else {
+          driversList = [];
         }
       } catch (e) {
-        console.log('Running active live state engine for driver profiles.');
+        console.error('Error fetching driver profiles from Supabase:', e);
+        driversList = [];
       }
+      updateMetricCounters();
+    }
+
+    async function fetchLoadsFromSupabase() {
+      try {
+        const { data: loads, error } = await supabase.from('loads').select('*');
+        if (!error && loads && loads.length > 0) {
+          loadsList = loads.map(l => ({
+            id: l.load_number || l.id,
+            broker: l.broker || l.shipper || 'Direct Freight',
+            origin: l.origin,
+            destination: l.destination,
+            equipment: l.equipment || "53' Dry Van",
+            rate: l.rate || 0,
+            miles: l.miles || 0,
+            status: l.status || 'AVAILABLE'
+          }));
+        }
+      } catch (e) {
+        console.log('Using local load array for active session.');
+      }
+      updateMetricCounters();
+    }
+
+    function updateMetricCounters() {
+      const driverCountElem = document.getElementById('metric-driver-count');
+      const loadsCountElem = document.getElementById('metric-loads-count');
+      if (driverCountElem) driverCountElem.innerText = driversList.length;
+      if (loadsCountElem) loadsCountElem.innerText = loadsList.length;
     }
 
     window.switchView = function(view) {
@@ -330,24 +378,88 @@
       } else if (view === 'loadboard') {
         document.getElementById('nav-loadboard').classList.add('active');
         title.innerText = 'Instant Load Board (Live Carrier Dispatch)';
-        container.innerHTML = `
-          <div class="content-area" style="padding-top: 2rem;">
-            <div class="section-title">Available Spot Loads - Live Status Sync</div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem;">
-              <div class="card">
-                <div style="font-size:1.5rem; font-weight:800; color:var(--success); float:right;">$2,450</div>
-                <h3 style="color:#38bdf8; margin-bottom:0.5rem;">Chicago, IL → Nashville, TN</h3>
-                <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1rem;">53' Dry Van • 470 miles • $5.21/mi • Pickup Today 16:30</p>
-                <button class="btn" style="width:100%;" onclick="alert('Load Booked via Dispatch!')">Dispatch Load</button>
-              </div>
-            </div>
-          </div>
-        `;
+        renderLoadBoardView(container);
       } else {
         document.getElementById('nav-command').classList.add('active');
         location.reload();
       }
     };
+
+    function renderCommandLoadsTable() {
+      const target = document.getElementById('command-load-table-container');
+      if (!target) return;
+
+      if (loadsList.length === 0) {
+        target.innerHTML = `<p style="text-align:center; padding:2rem; color:var(--text-muted);">No active loads currently posted on the matrix.</p>`;
+        return;
+      }
+
+      target.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Load ID</th>
+              <th>Shipper / Broker</th>
+              <th>Lane (Origin → Destination)</th>
+              <th>Equipment</th>
+              <th>Rate / RPM</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${loadsList.map(load => {
+              const rpm = load.miles > 0 ? (load.rate / load.miles).toFixed(2) : '0.00';
+              return `
+                <tr>
+                  <td><strong>${load.id}</strong></td>
+                  <td>${load.broker}</td>
+                  <td>${load.origin} →${load.destination}</td>
+                  <td>${load.equipment}</td>
+                  <td>$${Number(load.rate).toLocaleString()} ($${rpm}/mi)</td>
+                  <td><span class="badge badge-success">${load.status}</span></td>
+                  <td><button class="btn btn-sm btn-danger" onclick="removeLoad('${load.id}')">Remove Load</button></td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderLoadBoardView(container) {
+      container.innerHTML = `
+        <div class="content-area" style="padding-top: 2rem;">
+          <div class="section-title">
+            <span>Available Spot Loads - Live Status Sync</span>
+            <button class="btn" onclick="openNewLoadModal()">+ Post New Load</button>
+          </div>
+          
+          ${loadsList.length === 0 
+            ? `<div class="card" style="text-align:center; padding:3rem;"><p style="color:var(--text-muted);">No active loads available on the loadboard. Click "+ Post New Load" to create one.</p></div>`
+            : `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem;">
+                ${loadsList.map(load => {
+                  const rpm = load.miles > 0 ? (load.rate / load.miles).toFixed(2) : '0.00';
+                  return `
+                    <div class="card">
+                      <div style="font-size:1.5rem; font-weight:800; color:var(--success); float:right;">$${Number(load.rate).toLocaleString()}</div>
+                      <h3 style="color:#38bdf8; margin-bottom:0.25rem;">${load.origin} → ${load.destination}</h3>
+                      <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.75rem;">Load ID: ${load.id} | ${load.broker}</p>
+                      <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1.25rem;">
+                        <strong>${load.equipment}</strong> • ${load.miles} miles • $${rpm}/mi
+                      </p>
+                      <div style="display:flex; gap:0.5rem;">
+                        <button class="btn btn-sm" style="flex:1;" onclick="alert('Dispatching ${load.id}...')">Dispatch</button>
+                        <button class="btn btn-sm btn-danger" onclick="removeLoad('${load.id}')">Remove Load</button>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>`
+          }
+        </div>
+      `;
+    }
 
     function renderDriverDirectoryView(container) {
       container.innerHTML = `
@@ -356,39 +468,121 @@
             <span>Fleet Driver Roster & Regulatory Files</span>
             <button class="btn" onclick="addNewDriverPrompt()">+ Add New Driver Profile</button>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Driver Name</th>
-                <th>Contact Phone / Email</th>
-                <th>CDL License Number</th>
-                <th>Assigned Unit</th>
-                <th>Compliance Status</th>
-                <th>Document Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${driversList.map(driver => `
-                <tr>
-                  <td><strong>${driver.name}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${driver.id}</span></td>
-                  <td>${driver.phone}<br><span style="font-size:0.75rem; color:var(--text-muted);">${driver.email}</span></td>
-                  <td>${driver.cdl}</td>
-                  <td>${driver.equipment}</td>
-                  <td>
-                    ${driver.status === 'COMPLIANT' 
-                      ? '<span class="badge badge-success">● Compliant</span>' 
-                      : '<span class="badge badge-warning">● Action Required</span>'}
-                  </td>
-                  <td>
-                    <button class="btn btn-sm" onclick="openDocVault('${driver.id}')">View / Upload Docs (${driver.documents.length})</button>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+          ${driversList.length === 0 
+            ? `<div class="card" style="text-align:center; padding:3rem;"><p style="color:var(--text-muted);">No driver profiles found in Supabase database. Click "+ Add New Driver Profile" to register a driver.</p></div>`
+            : `<table>
+                <thead>
+                  <tr>
+                    <th>Driver Name</th>
+                    <th>Contact Phone / Email</th>
+                    <th>CDL License Number</th>
+                    <th>Assigned Unit</th>
+                    <th>Compliance Status</th>
+                    <th>Document Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${driversList.map(driver => `
+                    <tr>
+                      <td><strong>${driver.name}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${driver.id}</span></td>
+                      <td>${driver.phone}<br><span style="font-size:0.75rem; color:var(--text-muted);">${driver.email}</span></td>
+                      <td>${driver.cdl}</td>
+                      <td>${driver.equipment}</td>
+                      <td>
+                        ${driver.status === 'COMPLIANT' 
+                          ? '<span class="badge badge-success">● Compliant</span>' 
+                          : '<span class="badge badge-warning">● Action Required</span>'}
+                      </td>
+                      <td>
+                        <button class="btn btn-sm" onclick="openDocVault('${driver.id}')">View / Upload Docs (${driver.documents.length})</button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>`
+          }
         </div>
       `;
     }
+
+    // Load Management Functions (Add / Remove)
+    window.openNewLoadModal = function() {
+      document.getElementById('load-modal').style.display = 'flex';
+    };
+
+    window.closeLoadModal = function() {
+      document.getElementById('load-modal').style.display = 'none';
+      document.getElementById('post-load-form').reset();
+    };
+
+    window.handlePostLoadSubmit = async function(e) {
+      e.preventDefault();
+      const broker = document.getElementById('load-broker').value;
+      const origin = document.getElementById('load-origin').value;
+      const destination = document.getElementById('load-destination').value;
+      const equipment = document.getElementById('load-equipment').value;
+      const rate = Number(document.getElementById('load-rate').value);
+      const miles = Number(document.getElementById('load-miles').value);
+
+      const newLoad = {
+        id: 'MM-' + Math.floor(8000 + Math.random() * 1000),
+        broker,
+        origin,
+        destination,
+        equipment,
+        rate,
+        miles,
+        status: 'AVAILABLE'
+      };
+
+      // Push to Supabase if loads table exists
+      try {
+        await supabase.from('loads').insert({
+          load_number: newLoad.id,
+          broker: newLoad.broker,
+          origin: newLoad.origin,
+          destination: newLoad.destination,
+          equipment: newLoad.equipment,
+          rate: newLoad.rate,
+          miles: newLoad.miles,
+          status: newLoad.status
+        });
+      } catch (err) {
+        console.log('Saved load to live session state.');
+      }
+
+      loadsList.unshift(newLoad);
+      closeLoadModal();
+      updateMetricCounters();
+
+      // Refresh view if active
+      const activeNav = document.querySelector('.sidebar-nav li a.active').id;
+      if (activeNav === 'nav-loadboard') {
+        renderLoadBoardView(document.getElementById('main-view-container'));
+      } else {
+        renderCommandLoadsTable();
+      }
+    };
+
+    window.removeLoad = async function(loadId) {
+      if (!confirm(`Are you sure you want to remove load ${loadId} from the loadboard?`)) return;
+
+      try {
+        await supabase.from('loads').delete().or(`load_number.eq.${loadId},id.eq.${loadId}`);
+      } catch (e) {
+        console.log('Removed from live state session.');
+      }
+
+      loadsList = loadsList.filter(l => l.id !== loadId);
+      updateMetricCounters();
+
+      const activeNav = document.querySelector('.sidebar-nav li a.active').id;
+      if (activeNav === 'nav-loadboard') {
+        renderLoadBoardView(document.getElementById('main-view-container'));
+      } else {
+        renderCommandLoadsTable();
+      }
+    };
 
     // Modal Control & Document Vault Actions
     window.openDocVault = function(driverId) {
@@ -405,7 +599,7 @@
 
     function renderDocList(driver) {
       const docListContainer = document.getElementById('modal-doc-list');
-      if (driver.documents.length === 0) {
+      if (!driver.documents || driver.documents.length === 0) {
         docListContainer.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No compliance documents uploaded yet.</td></tr>`;
         return;
       }
@@ -423,7 +617,7 @@
             <td><span class="badge ${badgeClass}">${doc.status}</span></td>
             <td>
               <button class="btn btn-sm btn-secondary" onclick="viewDocument('${doc.file_url}', '${doc.title}')">View File</button>
-              <button class="btn btn-sm" style="background:#ef4444; margin-left:4px;" onclick="deleteDocument('${doc.id}')">&times;</button>
+              <button class="btn btn-sm btn-danger" style="margin-left:4px;" onclick="deleteDocument('${doc.id}')">&times;</button>
             </td>
           </tr>
         `;
@@ -442,7 +636,6 @@
       }
     });
 
-    // Upload Action: Push to Supabase Storage & Database Sync
     window.uploadDriverDocument = async function() {
       const fileInput = document.getElementById('file-input');
       const docType = document.getElementById('upload-type').value;
@@ -456,7 +649,6 @@
       const file = fileInput.files[0];
       const driver = driversList.find(d => d.id === activeDriverId);
 
-      // Status logic
       let docStatus = 'VALID';
       if (expDate) {
         const today = new Date();
@@ -476,7 +668,6 @@
         status: docStatus
       };
 
-      // Attempt Supabase Storage Upload if bucket exists
       try {
         const fileExt = file.name.split('.').pop();
         const filePath = `${activeDriverId}/${Date.now()}.${fileExt}`;
@@ -488,13 +679,12 @@
           expiration_date: expDate
         });
       } catch (err) {
-        console.log('Pushed file to local state vault session.');
+        console.log('Document stored in current session.');
       }
 
       driver.documents.push(newDoc);
       alert(`Document "${file.name}" uploaded successfully for ${driver.name}!`);
 
-      // Reset Form & Re-render
       fileInput.value = '';
       document.getElementById('selected-file-name').innerText = '';
       document.getElementById('upload-exp-date').value = '';
@@ -509,34 +699,54 @@
       }
     };
 
-    window.deleteDocument = function(docId) {
+    window.deleteDocument = async function(docId) {
       if (!confirm('Are you sure you want to remove this document from the vault?')) return;
       const driver = driversList.find(d => d.id === activeDriverId);
       if (driver) {
+        try {
+          await supabase.from('driver_documents').delete().eq('id', docId);
+        } catch (e) {}
         driver.documents = driver.documents.filter(doc => doc.id !== docId);
         renderDocList(driver);
       }
     };
 
-    window.addNewDriverPrompt = function() {
+    window.addNewDriverPrompt = async function() {
       const name = prompt('Enter New Driver Full Name:');
       if (!name) return;
       const phone = prompt('Enter Driver Phone Number:');
       const email = prompt('Enter Driver Email Address:');
       const cdl = prompt('Enter CDL License Number:');
 
-      const newDriver = {
-        id: 'DRV-' + Math.floor(100 + Math.random() * 900),
-        name,
-        phone: phone || '(555) 000-0000',
-        email: email || `${name.toLowerCase().replace(' ', '.')}@carrier.com`,
-        cdl: cdl || 'CDL-PENDING',
-        equipment: 'Unassigned',
-        status: 'ACTION REQUIRED',
-        documents: []
-      };
+      try {
+        const { data, error } = await supabase.from('profiles').insert({
+          full_name: name,
+          email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@carrier.com`,
+          phone: phone || '(555) 000-0000',
+          cdl_number: cdl || 'CDL-PENDING',
+          role: 'DRIVER',
+          status: 'ACTION REQUIRED'
+        }).select().single();
 
-      driversList.push(newDriver);
+        if (!error) {
+          await fetchDriverProfilesFromSupabase();
+        } else {
+          driversList.push({
+            id: 'DRV-' + Math.floor(100 + Math.random() * 900),
+            name,
+            phone: phone || '(555) 000-0000',
+            email: email || `${name.toLowerCase().replace(/\s+/g, '.')}@carrier.com`,
+            cdl: cdl || 'CDL-PENDING',
+            equipment: 'Unassigned',
+            status: 'ACTION REQUIRED',
+            documents: []
+          });
+        }
+      } catch (e) {
+        console.log('Driver added to live session roster.');
+      }
+
+      updateMetricCounters();
       switchView('drivers');
     };
 
