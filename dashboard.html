@@ -20,7 +20,9 @@
       --sidebar-width: 280px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
-    body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; overflow: hidden; }
+    
+    /* Body initially hidden until Auth Guard passes */
+    body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; overflow: hidden; display: none; }
     .app-container { display: flex; height: 100vh; }
     
     aside.sidebar { width: var(--sidebar-width); background-color: var(--bg-surface); border-right: var(--border-metallic); display: flex; flex-direction: column; }
@@ -35,6 +37,8 @@
     main.main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background-color: var(--bg-primary); }
     header.top-header { height: 75px; background-color: var(--bg-surface); border-bottom: var(--border-metallic); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; }
     
+    .header-actions { display: flex; align-items: center; gap: 1rem; }
+    
     .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; padding: 2rem 2rem 1rem 2rem; }
     .card { background-color: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
     .card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--metallic-blue); }
@@ -44,6 +48,9 @@
     .btn { background: var(--metallic-blue); color: white; border: var(--border-metallic); padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; }
     .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
     
+    .btn-secondary { background: #1e293b; color: var(--text-main); }
+    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+
     .content-area { padding: 1rem 2rem 2rem 2rem; }
     .section-title { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
     
@@ -55,6 +62,14 @@
     .load-board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
     .load-offer-card { background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; position: relative; }
     .load-offer-card .rate { font-size: 1.5rem; font-weight: 800; color: var(--success); float: right; }
+
+    /* Profile Modal Styling */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(5px); }
+    .modal-card { background: var(--bg-surface); border: var(--border-metallic); border-radius: 1rem; width: 90%; max-width: 480px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative; }
+    .modal-header { font-size: 1.2rem; font-weight: 900; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 1.5rem; border-bottom: var(--border-metallic); padding-bottom: 0.75rem; }
+    .profile-field { margin-bottom: 1rem; }
+    .profile-field label { display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem; font-weight: 700; }
+    .profile-field div { font-size: 0.95rem; font-weight: 600; color: var(--text-main); background: #080d1a; padding: 0.75rem; border-radius: 0.5rem; border: var(--border-metallic); }
   </style>
 </head>
 <body>
@@ -78,8 +93,9 @@
     <main class="main-content">
       <header class="top-header">
         <h2 id="view-title" style="font-size: 1.25rem; font-weight: 800; letter-spacing: 1px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Enterprise Dispatch Command</h2>
-        <div>
-          <button class="btn" id="logout-btn" style="background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);">Terminate Session</button>
+        <div class="header-actions">
+          <button class="btn btn-secondary" id="open-profile-btn">View Profile</button>
+          <button class="btn btn-danger" id="logout-btn">Terminate Session</button>
         </div>
       </header>
 
@@ -151,33 +167,79 @@
     </main>
   </div>
 
+  <!-- User Profile Modal -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal-card">
+      <div class="modal-header">Operator Identity & Credentials</div>
+      <div class="profile-field">
+        <label>Account Email</label>
+        <div id="prof-email">Loading...</div>
+      </div>
+      <div class="profile-field">
+        <label>Access Role / Privilege Level</label>
+        <div id="prof-role">Loading...</div>
+      </div>
+      <div class="profile-field">
+        <label>User UUID</label>
+        <div id="prof-id" style="font-family: monospace; font-size: 0.8rem;">Loading...</div>
+      </div>
+      <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+        <button class="btn btn-secondary" id="close-profile-btn">Close Window</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Session Guard & Role Distinction
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      window.location.href = 'index.html';
-    } else {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .single();
+    // Auth Guard & Role Verification
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
+      } else {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
 
-      if (profile?.role === 'DRIVER') {
-        window.location.href = 'driver-portal.html';
+        if (profile?.role === 'DRIVER') {
+          window.location.href = 'driver-portal.html';
+        } else {
+          // Grant access & show UI
+          document.body.style.display = 'block';
+          
+          // Populate Profile Modal Data
+          document.getElementById('prof-email').innerText = session.user.email || 'N/A';
+          document.getElementById('prof-role').innerText = profile?.role || 'OPERATOR / DISPATCH';
+          document.getElementById('prof-id').innerText = session.user.id;
+        }
       }
+    } catch (err) {
+      console.error(err);
+      window.location.href = 'index.html';
     }
 
+    // Modal Events
+    document.getElementById('open-profile-btn').addEventListener('click', () => {
+      document.getElementById('profile-modal').style.display = 'flex';
+    });
+
+    document.getElementById('close-profile-btn').addEventListener('click', () => {
+      document.getElementById('profile-modal').style.display = 'none';
+    });
+
+    // Logout Event
     document.getElementById('logout-btn').addEventListener('click', async () => {
       await supabase.auth.signOut();
       window.location.href = 'index.html';
     });
 
+    // View Switching
     window.switchView = function(view) {
       const container = document.getElementById('main-view-container');
       const title = document.getElementById('view-title');
