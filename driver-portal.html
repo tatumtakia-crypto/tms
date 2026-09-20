@@ -91,58 +91,7 @@
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
-
-    // Master state store for available and assigned loads
-    let loadsData = [
-      {
-        id: 'MM-8012',
-        shipper: 'Amazon Relay Direct',
-        origin: 'Chicago Fulfillment Hub (Gate 4)',
-        destination: 'Columbus Sort Center',
-        equipment: "53' Dry Van",
-        rate: '$1,850',
-        rpm: '$3.65/mi',
-        pickup: 'Today 14:00',
-        status: 'ASSIGNED',
-        driver_id: null // Set dynamically to current logged-in driver
-      },
-      {
-        id: 'MM-8015',
-        shipper: 'Uber Freight Spot',
-        origin: 'Chicago, IL',
-        destination: 'Nashville, TN',
-        equipment: "53' Dry Van",
-        rate: '$2,450',
-        rpm: '$5.21/mi',
-        pickup: 'Today 16:30',
-        status: 'AVAILABLE',
-        driver_id: null
-      },
-      {
-        id: 'MM-8016',
-        shipper: 'C.H. Robinson Direct',
-        origin: 'Phoenix, AZ',
-        destination: 'Denver, CO',
-        equipment: "53' Reefer",
-        rate: '$3,100',
-        rpm: '$3.64/mi',
-        pickup: 'Tomorrow 08:00',
-        status: 'AVAILABLE',
-        driver_id: null
-      },
-      {
-        id: 'MM-8017',
-        shipper: 'TQL Logistics',
-        origin: 'Dallas, TX',
-        destination: 'Atlanta, GA',
-        equipment: "53' Dry Van",
-        rate: '$2,800',
-        rpm: '$3.55/mi',
-        pickup: 'Tomorrow 12:00',
-        status: 'AVAILABLE',
-        driver_id: null
-      }
-    ];
+    let loadsData = [];
 
     async function initDriverTerminal() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -152,9 +101,6 @@
       }
 
       currentUser = session.user;
-
-      // Assign initial active load to logged-in user for demonstration
-      loadsData[0].driver_id = currentUser.id;
 
       // Sync user profile
       const { data: profile } = await supabase.from('profiles').select('*').or(`user_id.eq.${currentUser.id},id.eq.${currentUser.id}`).single();
@@ -168,20 +114,24 @@
         document.getElementById('admin-dashboard-link').style.display = 'block';
       }
 
-      // Fetch loads from Supabase DB if table exists, otherwise fallback to live state
+      // Sync loads directly from Supabase DB
       await syncLoadsFromSupabase();
-      renderAllViews();
     }
 
     async function syncLoadsFromSupabase() {
       try {
         const { data, error } = await supabase.from('loads').select('*');
-        if (!error && data && data.length > 0) {
-          loadsData = data;
+        if (error) {
+          console.error('Error fetching loads from Supabase:', error.message);
+          loadsData = [];
+        } else {
+          loadsData = data || [];
         }
       } catch (err) {
-        console.log('Using active state engine...');
+        console.error('Failed to communicate with database:', err);
+        loadsData = [];
       }
+      renderAllViews();
     }
 
     function renderAllViews() {
@@ -198,13 +148,13 @@
       } else {
         activeContainer.innerHTML = activeLoads.map(load => `
           <div class="load-card">
-            <div class="rate-tag">${load.rate}</div>
+            <div class="rate-tag">${load.rate || 'N/A'}</div>
             <h3>Active Load #${load.id}</h3>
-            <p><strong>Shipper / Broker:</strong> ${load.shipper}</p>
-            <p><strong>Pickup:</strong> ${load.origin}</p>
-            <p><strong>Destination:</strong> ${load.destination}</p>
-            <p><strong>Equipment:</strong> ${load.equipment}</p>
-            <p><strong>Status:</strong> <span style="color:var(--success); font-weight:700;">● Assigned / En Route</span></p>
+            <p><strong>Shipper / Broker:</strong> ${load.shipper || 'N/A'}</p>
+            <p><strong>Pickup:</strong> ${load.origin || 'N/A'}</p>
+            <p><strong>Destination:</strong> ${load.destination || 'N/A'}</p>
+            <p><strong>Equipment:</strong> ${load.equipment || 'N/A'}</p>
+            <p><strong>Status:</strong> <span style="color:var(--success); font-weight:700;">● ${load.status || 'Assigned'}</span></p>
             <div class="action-grid">
               <button class="btn-driver" onclick="alert('Geofence Check-In Confirmed')">Facility Check-In</button>
               <button class="btn-driver" onclick="alert('Status updated: Departed Facility')">Departed Facility</button>
@@ -223,12 +173,12 @@
       } else {
         boardContainer.innerHTML = boardLoads.map(load => `
           <div class="load-card">
-            <div class="rate-tag">${load.rate}</div>
+            <div class="rate-tag">${load.rate || 'N/A'}</div>
             <h3>Load #${load.id}</h3>
-            <p><strong>Lane:</strong> ${load.origin} &rarr; ${load.destination}</p>
-            <p><strong>Shipper:</strong> ${load.shipper}</p>
-            <p><strong>Equipment:</strong> ${load.equipment} • <strong>RPM:</strong> ${load.rpm}</p>
-            <p><strong>Pickup Schedule:</strong> ${load.pickup}</p>
+            <p><strong>Lane:</strong> ${load.origin || 'N/A'} &rarr; ${load.destination || 'N/A'}</p>
+            <p><strong>Shipper:</strong> ${load.shipper || 'N/A'}</p>
+            <p><strong>Equipment:</strong> ${load.equipment || 'N/A'} • <strong>RPM:</strong> ${load.rpm || 'N/A'}</p>
+            <p><strong>Pickup Schedule:</strong> ${load.pickup || 'N/A'}</p>
             <button class="btn-driver" style="width:100%; margin-top:0.75rem;" onclick="acceptLoad('${load.id}')">Accept Load (Claim Now)</button>
           </div>
         `).join('');
@@ -237,19 +187,22 @@
 
     // Driver Action: Accept Load
     window.acceptLoad = async function(loadId) {
-      const load = loadsData.find(l => l.id === loadId);
-      if (load) {
-        load.status = 'ASSIGNED';
-        load.driver_id = currentUser.id;
+      try {
+        const { error } = await supabase
+          .from('loads')
+          .update({ status: 'ASSIGNED', driver_id: currentUser.id })
+          .eq('id', loadId);
 
-        // Sync with Supabase Database
-        try {
-          await supabase.from('loads').update({ status: 'ASSIGNED', driver_id: currentUser.id }).eq('id', loadId);
-        } catch (e) {}
+        if (error) {
+          alert('Error claiming load: ' + error.message);
+          return;
+        }
 
-        alert(`Load #${loadId} accepted successfully! It is now added to your Active Loads.`);
+        alert(`Load #${loadId} accepted successfully!`);
+        await syncLoadsFromSupabase();
         switchTab('active');
-        renderAllViews();
+      } catch (e) {
+        alert('An unexpected error occurred while processing your request.');
       }
     };
 
@@ -259,18 +212,21 @@
         return;
       }
 
-      const load = loadsData.find(l => l.id === loadId);
-      if (load) {
-        load.status = 'AVAILABLE';
-        load.driver_id = null;
+      try {
+        const { error } = await supabase
+          .from('loads')
+          .update({ status: 'AVAILABLE', driver_id: null })
+          .eq('id', loadId);
 
-        // Sync with Supabase Database
-        try {
-          await supabase.from('loads').update({ status: 'AVAILABLE', driver_id: null }).eq('id', loadId);
-        } catch (e) {}
+        if (error) {
+          alert('Error canceling load: ' + error.message);
+          return;
+        }
 
         alert(`Load #${loadId} has been canceled and returned to the Load Board.`);
-        renderAllViews();
+        await syncLoadsFromSupabase();
+      } catch (e) {
+        alert('An unexpected error occurred while processing your request.');
       }
     };
 
