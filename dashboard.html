@@ -1,227 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operations Dashboard</title>
-    <style>
-        :root {
-            --primary: #0f172a;
-            --card-bg: #ffffff;
-            --bg-body: #f1f5f9;
-            --border: #e2e8f0;
-            --text-main: #334155;
-            --text-muted: #64748b;
-            --accent: #2563eb;
-            --success: #10b981;
-            --warning: #f59e0b;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastermind Matrix: The Black Label - Enterprise Command</title>
+  <style>
+    :root {
+      --bg-primary: #060911;
+      --bg-surface: #0f1626;
+      --bg-card: #141f36;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --metallic-blue: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+      --metallic-silver: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
+      --border-metallic: 1px solid rgba(148, 163, 184, 0.2);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 280px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; overflow: hidden; }
+    .app-container { display: flex; height: 100vh; }
+    
+    aside.sidebar { width: var(--sidebar-width); background-color: var(--bg-surface); border-right: var(--border-metallic); display: flex; flex-direction: column; }
+    .sidebar-brand { padding: 1.5rem; border-bottom: var(--border-metallic); background: #080d1a; }
+    .sidebar-brand h1 { font-size: 1.05rem; font-weight: 900; letter-spacing: 2px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+    .sidebar-brand span { font-size: 0.65rem; color: #06b6d4; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; display: block; margin-top: 4px; }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+    .sidebar-nav { list-style: none; padding: 1rem; overflow-y: auto; flex: 1; }
+    .sidebar-nav li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; transition: all 0.3s ease; border: 1px solid transparent; }
+    .sidebar-nav li a:hover, .sidebar-nav li a.active { background: var(--metallic-blue); color: #ffffff; border-color: rgba(255,255,255,0.3); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
 
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            display: flex;
-            min-height: 100vh;
-        }
+    main.main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background-color: var(--bg-primary); }
+    header.top-header { height: 75px; background-color: var(--bg-surface); border-bottom: var(--border-metallic); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; }
+    
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; padding: 2rem 2rem 1rem 2rem; }
+    .card { background-color: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+    .card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--metallic-blue); }
+    .card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 0.75rem; font-weight: 700; }
+    .card .metric-value { font-size: 2.25rem; font-weight: 800; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    .btn { background: var(--metallic-blue); color: white; border: var(--border-metallic); padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+    
+    .content-area { padding: 1rem 2rem 2rem 2rem; }
+    .section-title { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    
+    table { width: 100%; border-collapse: collapse; background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+    th, td { padding: 1rem 1.25rem; text-align: left; border-bottom: var(--border-metallic); font-size: 0.9rem; }
+    th { background: #080d1a; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1.5px; }
+    tr:hover td { background: rgba(59, 130, 246, 0.05); }
 
-        .sidebar {
-            width: 240px;
-            background-color: var(--primary);
-            color: white;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .sidebar h2 {
-            font-size: 1.1rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .nav-links a {
-            color: #94a3b8;
-            text-decoration: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            display: block;
-            transition: all 0.2s;
-        }
-
-        .nav-links a.active, .nav-links a:hover {
-            background-color: #1e293b;
-            color: white;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .metric-card {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .metric-card .title {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
-        .metric-card .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .data-table-container {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            padding: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.95rem;
-        }
-
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        th {
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-        }
-
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .badge-success { background-color: #d1fae5; color: var(--success); }
-        .badge-warning { background-color: #fef3c7; color: var(--warning); }
-        .badge-info { background-color: #dbeafe; color: var(--accent); }
-    </style>
+    .load-board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+    .load-offer-card { background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; position: relative; }
+    .load-offer-card .rate { font-size: 1.5rem; font-weight: 800; color: var(--success); float: right; }
+  </style>
 </head>
 <body>
-
+  <div class="app-container">
     <aside class="sidebar">
-        <h2>Logistics HQ</h2>
-        <ul class="nav-links">
-            <li><a href="#" class="active">Overview</a></li>
-            <li><a href="#">Active Shipments</a></li>
-            <li><a href="#">Drivers</a></li>
-            <li><a href="#">Analytics</a></li>
-            <li><a href="#">Settings</a></li>
-        </ul>
+      <div class="sidebar-brand">
+        <h1>Mastermind Matrix</h1>
+        <span>The Black Label</span>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="#" class="active" onclick="switchView('dashboard')">Command Center</a></li>
+        <li><a href="#" onclick="switchView('loadboard')">Instant Load Board</a></li>
+        <li><a href="#" onclick="switchView('crm')">Carrier Pipeline (CRM)</a></li>
+        <li><a href="#" onclick="switchView('fleet')">Fleet Telemetry & GPS</a></li>
+        <li><a href="#" onclick="switchView('vault')">Automated Document Vault</a></li>
+        <li><a href="#" onclick="switchView('pricing')">Dynamic Pricing & RPM Matrix</a></li>
+        <li><a href="#" onclick="switchView('compliance')">Safety & Compliance</a></li>
+      </ul>
     </aside>
 
     <main class="main-content">
-        <div class="top-bar">
-            <h1>Operations Dashboard</h1>
-            <span style="font-size: 0.9rem; color: var(--text-muted);">System Status: Operational</span>
+      <header class="top-header">
+        <h2 id="view-title" style="font-size: 1.25rem; font-weight: 800; letter-spacing: 1px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Enterprise Dispatch Command</h2>
+        <div>
+          <button class="btn" id="logout-btn" style="background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);">Terminate Session</button>
         </div>
+      </header>
 
-        <section class="metrics-grid">
-            <div class="metric-card">
-                <div class="title">Active Deliveries</div>
-                <div class="value">42</div>
-            </div>
-            <div class="metric-card">
-                <div class="title">Available Drivers</div>
-                <div class="value">18</div>
-            </div>
-            <div class="metric-card">
-                <div class="title">Completed Today</div>
-                <div class="value">128</div>
-            </div>
-            <div class="metric-card">
-                <div class="title">On-Time Rate</div>
-                <div class="value">96.4%</div>
-            </div>
-        </section>
-
-        <section class="data-table-container">
-            <h3 style="margin-bottom: 16px;">Live Delivery Status</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Driver</th>
-                        <th>Destination</th>
-                        <th>ETA</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>#ORD-9402</td>
-                        <td>John Doe</td>
-                        <td>742 Evergreen Terrace</td>
-                        <td>10:45 AM</td>
-                        <td><span class="badge badge-info">In Transit</span></td>
-                    </tr>
-                    <tr>
-                        <td>#ORD-9403</td>
-                        <td>Jane Smith</td>
-                        <td>123 Main Street</td>
-                        <td>11:15 AM</td>
-                        <td><span class="badge badge-warning">Assigned</span></td>
-                    </tr>
-                    <tr>
-                        <td>#ORD-9400</td>
-                        <td>Alex Johnson</td>
-                        <td>456 Market Road</td>
-                        <td>10:10 AM</td>
-                        <td><span class="badge badge-success">Delivered</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+      <div id="main-view-container">
+        <div class="dashboard-grid">
+          <div class="card">
+            <h3>Active Telemetry Fleets</h3>
+            <div class="metric-value">14 / 14</div>
+          </div>
+          <div class="card">
+            <h3>Instant Loads Booked</h3>
+            <div class="metric-value">38</div>
+          </div>
+          <div class="card">
+            <h3>Average RPM (Spot)</h3>
+            <div class="metric-value" style="color: #38bdf8;">$3.42</div>
+          </div>
+          <div class="card">
+            <h3>Gross Revenue (MTD)</h3>
+            <div class="metric-value" style="color: var(--success);">$148,950</div>
+          </div>
+        </div>
+        
+        <div class="content-area">
+          <div class="section-title">
+            <span>Active Spot & Contract Matrix</span>
+            <button class="btn" onclick="alert('Launching Instant Load Creator...')">+ Post New Load</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Load ID</th>
+                <th>Shipper / Broker</th>
+                <th>Lane (Origin → Destination)</th>
+                <th>Equipment</th>
+                <th>Rate / RPM</th>
+                <th>Telemetry Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>MM-8012</strong></td>
+                <td>Amazon Relay Direct</td>
+                <td>Chicago, IL → Columbus, OH</td>
+                <td>53' Dry Van</td>
+                <td>$1,850 ($3.65/mi)</td>
+                <td><span style="color:var(--success); font-weight:700;">● In Transit (GPS Active)</span></td>
+              </tr>
+              <tr>
+                <td><strong>MM-8013</strong></td>
+                <td>Uber Freight Spot</td>
+                <td>Atlanta, GA → Charlotte, NC</td>
+                <td>53' Reefer</td>
+                <td>$1,420 ($3.20/mi)</td>
+                <td><span style="color:var(--warning); font-weight:700;">● Facility Check-In</span></td>
+              </tr>
+              <tr>
+                <td><strong>MM-8014</strong></td>
+                <td>TQL Logistics</td>
+                <td>Dallas, TX → Houston, TX</td>
+                <td>53' Dry Van</td>
+                <td>$950 ($3.80/mi)</td>
+                <td><span style="color:var(--success); font-weight:700;">● Assigned & Dispatched</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </main>
+  </div>
 
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Session Guard & Role Distinction
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = 'index.html';
+    } else {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (profile?.role === 'DRIVER') {
+        window.location.href = 'driver-portal.html';
+      }
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
+    });
+
+    window.switchView = function(view) {
+      const container = document.getElementById('main-view-container');
+      const title = document.getElementById('view-title');
+      if (view === 'loadboard') {
+        title.innerText = 'Instant Load Board (Amazon & Uber Freight Integration)';
+        container.innerHTML = `
+          <div class="content-area" style="padding-top: 2rem;">
+            <div class="section-title">Available Spot Loads - One-Click "Book Now"</div>
+            <div class="load-board-grid">
+              <div class="load-offer-card">
+                <div class="rate">$2,450</div>
+                <h3 style="color:#38bdf8; margin-bottom:0.5rem;">Chicago, IL → Nashville, TN</h3>
+                <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1rem;">53' Dry Van • 470 miles • $5.21/mi • Pickup Today 14:00</p>
+                <button class="btn" style="width:100%;" onclick="alert('Load Booked Successfully via Instant Contract!')">Book Load Now (Instant)</button>
+              </div>
+              <div class="load-offer-card">
+                <div class="rate">$3,100</div>
+                <h3 style="color:#38bdf8; margin-bottom:0.5rem;">Phoenix, AZ → Denver, CO</h3>
+                <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1rem;">53' Reefer • 850 miles • $3.64/mi • Pickup Tomorrow</p>
+                <button class="btn" style="width:100%;" onclick="alert('Load Booked Successfully via Instant Contract!')">Book Load Now (Instant)</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        location.reload();
+      }
+    };
+  </script>
 </body>
 </html>
