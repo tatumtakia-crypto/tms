@@ -9,63 +9,92 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-  <!-- Navigation -->
-  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
+  <!-- Navigation Bar -->
+  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
     <div class="flex items-center space-x-3">
       <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
-      <span class="text-xs bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded font-semibold">Driver Portal</span>
+      <span id="role-badge" class="text-xs bg-yellow-900 text-yellow-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">Driver Portal</span>
     </div>
+
     <div class="flex space-x-6 text-sm font-medium">
       <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
       <a href="dashboard.html" class="text-gray-300 hover:text-white transition">Dashboard</a>
       <a href="loadboard.html" class="text-gray-300 hover:text-white transition">Loadboard</a>
       <a href="driver-portal.html" class="text-yellow-400 font-bold">Driver Portal</a>
     </div>
+
+    <!-- User Profile & Logout -->
+    <div class="flex items-center space-x-3 text-sm">
+      <a href="profile.html" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg border border-gray-600 transition">
+        <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
+        <span id="user-display-name" class="font-medium">Profile</span>
+      </a>
+      <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+        Logout
+      </button>
+    </div>
   </nav>
 
   <main class="max-w-4xl mx-auto px-6 py-8">
-    <!-- Header with Link to Loadboard -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
       <div>
-        <h1 class="text-3xl font-bold">Assigned Driver Loads</h1>
-        <p class="text-sm text-gray-400 mt-1">Filter loads assigned to your driver ID or browse all available loads on the loadboard.</p>
+        <h1 class="text-3xl font-bold">Driver Load Management</h1>
+        <p class="text-sm text-gray-400 mt-1">View assigned loads or filter by Driver ID directly from Supabase.</p>
       </div>
       <a href="loadboard.html" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
         Browse Main Loadboard
       </a>
     </div>
 
-    <!-- Driver ID Filter Box -->
+    <!-- Driver Filter Box -->
     <div class="bg-gray-800 p-4 rounded-xl mb-6 border border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4">
       <div class="flex items-center space-x-3 w-full sm:w-auto">
         <label class="text-sm font-medium text-gray-300 whitespace-nowrap">Driver ID:</label>
-        <input type="text" id="driver-filter" placeholder="Enter Driver UUID or Name" class="w-full sm:w-64 bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-blue-500" />
+        <input type="text" id="driver-filter" placeholder="Enter Driver UUID or ID" class="w-full sm:w-64 bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 text-sm focus:outline-none focus:border-blue-500" />
         <button onclick="fetchDriverLoads()" class="bg-yellow-600 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
           Filter
         </button>
       </div>
       <button onclick="clearFilter()" class="text-xs text-gray-400 hover:text-gray-200 underline">
-        Show All Assigned Loads
+        Show All Loads
       </button>
     </div>
 
-    <!-- Assigned Loads List -->
+    <!-- Container for Loads -->
     <div id="driver-loads-container" class="space-y-4">
-      <div class="text-center py-10 text-gray-400" id="driver-loading">
-        Connecting to database...
-      </div>
+      <div class="text-center py-10 text-gray-400">Loading driver loads...</div>
     </div>
   </main>
 
   <script>
-    // Initialize Supabase Client
     const SUPABASE_URL = 'YOUR_SUPABASE_URL';
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const container = document.getElementById('driver-loads-container');
+    let currentUserId = null;
 
-    // Fetch Driver Loads Directly from Supabase
+    async function initDriverPortal() {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        currentUserId = user.id;
+        const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single();
+        const role = profile?.role || user.user_metadata?.role || 'driver';
+        const name = profile?.full_name || user.email.split('@')[0];
+
+        document.getElementById('role-badge').innerText = role;
+        document.getElementById('user-display-name').innerText = name;
+        document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
+
+        // Auto-fill logged-in driver's ID
+        document.getElementById('driver-filter').value = user.id;
+      }
+
+      fetchDriverLoads();
+      subscribeDriverRealtime();
+    }
+
     async function fetchDriverLoads() {
       const driverId = document.getElementById('driver-filter').value.trim();
       container.innerHTML = `<div class="text-center py-10 text-gray-400">Fetching loads from Supabase...</div>`;
@@ -87,13 +116,12 @@
       renderDriverLoads(loads);
     }
 
-    // Render Driver Load Cards
     function renderDriverLoads(loads) {
       if (!loads || loads.length === 0) {
         container.innerHTML = `
           <div class="text-center py-10 text-gray-400 bg-gray-800 rounded-xl border border-gray-700">
-            <p class="mb-4">No loads found matching this Driver ID.</p>
-            <a href="loadboard.html" class="text-blue-400 hover:underline text-sm font-semibold">View Available Loads on Loadboard &rarr;</a>
+            <p class="mb-4">No loads found for this driver ID.</p>
+            <a href="loadboard.html" class="text-blue-400 hover:underline text-sm font-semibold">View Live Loadboard &rarr;</a>
           </div>`;
         return;
       }
@@ -112,11 +140,11 @@
 
           <div>
             <h2 class="text-xl font-bold">${load.origin} ➔ ${load.destination}</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Load ID: ${load.id} | Driver: ${load.driver_id || 'Unassigned'}</p>
+            <p class="text-xs text-gray-500 mt-0.5">Load ID: ${load.id} | Assigned Driver: ${load.driver_id || 'Unassigned'}</p>
           </div>
 
           <div class="pt-3 border-t border-gray-700 flex justify-between items-center">
-            <span class="text-xs text-gray-400">Update Status:</span>
+            <span class="text-xs text-gray-400">Update Shipment Status:</span>
             <div class="space-x-2">
               <button onclick="updateLoadStatus('${load.id}', 'in_transit')" class="px-3 py-1 bg-yellow-600 hover:bg-yellow-500 text-xs rounded font-medium transition">
                 In Transit
@@ -130,7 +158,6 @@
       `).join('');
     }
 
-    // Update Status in Supabase
     async function updateLoadStatus(loadId, newStatus) {
       const { error } = await supabase
         .from('loads')
@@ -149,19 +176,18 @@
       fetchDriverLoads();
     }
 
-    // Realtime Listener
     function subscribeDriverRealtime() {
-      supabase
-        .channel('driver:loads')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'loads' }, () => {
-          fetchDriverLoads();
-        })
+      supabase.channel('driver:loads')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'loads' }, () => fetchDriverLoads())
         .subscribe();
     }
 
-    // On Load
-    fetchDriverLoads();
-    subscribeDriverRealtime();
+    async function handleLogout() {
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    initDriverPortal();
   </script>
 </body>
 </html>
