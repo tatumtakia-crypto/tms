@@ -1,122 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Profile</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastermind Matrix - Operator Profile</title>
+  <style>
+    :root {
+      --bg-primary: #060911;
+      --bg-surface: #0f1626;
+      --bg-card: #141f36;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --metallic-blue: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+      --metallic-silver: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
+      --border-metallic: 1px solid rgba(148, 163, 184, 0.25);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; padding: 2rem 1rem; display: flex; justify-content: center; }
+    .profile-card { width: 100%; max-width: 500px; background: var(--bg-surface); border: var(--border-metallic); border-radius: 1rem; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    .profile-header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: var(--border-metallic); }
+    .profile-header h1 { font-size: 1.25rem; font-weight: 900; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+    .form-group { margin-bottom: 1.25rem; }
+    label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.4rem; }
+    input { width: 100%; padding: 0.75rem; background: #080d1a; border: var(--border-metallic); border-radius: 0.5rem; color: #fff; font-size: 0.9rem; }
+    input[readonly] { color: var(--text-muted); cursor: not-allowed; }
+    .btn-actions { display: flex; justify-content: space-between; margin-top: 1.5rem; }
+    .btn { background: var(--metallic-blue); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; text-transform: uppercase; text-decoration: none; font-size: 0.85rem; }
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col justify-between">
-
-  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
-    <div class="flex items-center space-x-3">
-      <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
-      <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded font-semibold">User Profile</span>
+<body>
+  <div class="profile-card">
+    <div class="profile-header">
+      <h1>Operator Profile</h1>
+      <p style="font-size:0.75rem; color:#06b6d4; margin-top:4px;">Mastermind Matrix OS</p>
     </div>
-    <div class="flex space-x-6 text-sm font-medium">
-      <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
-    </div>
-  </nav>
 
-  <main class="max-w-xl mx-auto px-6 py-12 w-full">
-    <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl space-y-6">
-      <div class="flex items-center space-x-4 border-b border-gray-700 pb-6">
-        <div class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-2xl font-bold text-white" id="avatar-big">
-          U
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold" id="profile-name">User Profile</h1>
-          <p class="text-sm text-gray-400" id="profile-email">loading...</p>
-          <span id="profile-role-badge" class="inline-block mt-2 text-xs bg-blue-900 text-blue-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">
-            --
-          </span>
-        </div>
+    <form id="profile-form">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="full_name" required>
+      </div>
+      <div class="form-group">
+        <label>Role (Pulled from Supabase)</label>
+        <input type="text" id="role" readonly>
+      </div>
+      <div class="form-group">
+        <label>Account ID (UUID)</label>
+        <input type="text" id="user_id" readonly>
       </div>
 
-      <form onsubmit="handleSaveProfile(event)" class="space-y-4">
-        <div>
-          <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">Full Name</label>
-          <input type="text" id="input-fullname" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500" />
-        </div>
+      <div class="btn-actions">
+        <a href="dashboard.html" class="btn" style="background:#1e293b;">&larr; Back</a>
+        <button type="submit" class="btn">Save Profile</button>
+      </div>
+    </form>
+  </div>
 
-        <div>
-          <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">Role (Fetched from Supabase)</label>
-          <input type="text" id="input-role" readonly class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-400 cursor-not-allowed capitalize" />
-        </div>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        <div>
-          <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">User ID (UUID)</label>
-          <input type="text" id="input-uid" readonly class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-400 cursor-not-allowed" />
-        </div>
+    let currentUserId = null;
 
-        <div class="flex justify-between items-center pt-4 border-t border-gray-700">
-          <button type="button" onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-            Logout
-          </button>
-          <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-semibold transition">
-            Save Profile
-          </button>
-        </div>
-      </form>
-    </div>
-  </main>
-
-  <script>
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let currentUser = null;
-
-    async function loadUserProfile() {
-      // Require Login
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = 'login.html';
+    async function loadProfile() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
         return;
       }
 
-      currentUser = user;
-      document.getElementById('input-uid').value = user.id;
-      document.getElementById('profile-email').innerText = user.email;
+      currentUserId = session.user.id;
+      document.getElementById('user_id').value = currentUserId;
 
-      // Fetch Profile Details Directly from Supabase `profiles` Table
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data: profile } = await supabase.from('profiles').select('*').or(`user_id.eq.${currentUserId},id.eq.${currentUserId}`).single();
 
-      const fullName = profile?.full_name || user.email.split('@')[0];
-      const role = profile?.role || 'driver';
-
-      document.getElementById('profile-name').innerText = fullName;
-      document.getElementById('input-fullname').value = fullName;
-      document.getElementById('input-role').value = role;
-      document.getElementById('profile-role-badge').innerText = role;
-      document.getElementById('avatar-big').innerText = fullName.charAt(0).toUpperCase();
+      document.getElementById('full_name').value = profile?.full_name || profile?.name || session.user.email.split('@')[0];
+      document.getElementById('role').value = (profile?.role || 'DRIVER').toUpperCase();
     }
 
-    async function handleSaveProfile(e) {
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const updatedName = document.getElementById('input-fullname').value;
+      const updatedName = document.getElementById('full_name').value;
 
       const { error } = await supabase.from('profiles').upsert({
-        id: currentUser.id,
+        user_id: currentUserId,
+        id: currentUserId,
         full_name: updatedName,
         updated_at: new Date().toISOString()
       });
 
-      if (error) alert('Error saving profile: ' + error.message);
-      else {
-        alert('Profile updated successfully!');
-        window.location.reload();
-      }
-    }
+      if (error) alert(error.message);
+      else alert('Profile updated successfully!');
+    });
 
-    async function handleLogout() {
-      await supabase.auth.signOut();
-      window.location.href = 'login.html';
-    }
-
-    loadUserProfile();
+    loadProfile();
   </script>
 </body>
 </html>
