@@ -1,114 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dispatch Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastermind Matrix: The Black Label - Enterprise Command</title>
+  <style>
+    :root {
+      --bg-primary: #060911;
+      --bg-surface: #0f1626;
+      --bg-card: #141f36;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --metallic-blue: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+      --metallic-silver: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
+      --border-metallic: 1px solid rgba(148, 163, 184, 0.2);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --sidebar-width: 280px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
+    body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; overflow: hidden; }
+    .app-container { display: flex; height: 100vh; }
+    
+    aside.sidebar { width: var(--sidebar-width); background-color: var(--bg-surface); border-right: var(--border-metallic); display: flex; flex-direction: column; }
+    .sidebar-brand { padding: 1.5rem; border-bottom: var(--border-metallic); background: #080d1a; }
+    .sidebar-brand h1 { font-size: 1.05rem; font-weight: 900; letter-spacing: 2px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+    .sidebar-brand span { font-size: 0.65rem; color: #06b6d4; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; display: block; margin-top: 4px; }
+
+    .user-profile-badge { padding: 1rem 1.5rem; border-bottom: var(--border-metallic); background: rgba(59, 130, 246, 0.05); }
+    .user-profile-badge .name { font-size: 0.9rem; font-weight: 800; color: #fff; }
+    .user-profile-badge .role-pill { display: inline-block; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; background: #1d4ed8; color: #fff; text-transform: uppercase; margin-top: 4px; }
+
+    .sidebar-nav { list-style: none; padding: 1rem; overflow-y: auto; flex: 1; }
+    .sidebar-nav li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; transition: all 0.3s ease; border: 1px solid transparent; }
+    .sidebar-nav li a:hover, .sidebar-nav li a.active { background: var(--metallic-blue); color: #ffffff; border-color: rgba(255,255,255,0.3); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+
+    main.main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background-color: var(--bg-primary); }
+    header.top-header { height: 75px; background-color: var(--bg-surface); border-bottom: var(--border-metallic); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; }
+    
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; padding: 2rem 2rem 1rem 2rem; }
+    .card { background-color: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+    .card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--metallic-blue); }
+    .card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 0.75rem; font-weight: 700; }
+    .card .metric-value { font-size: 2.25rem; font-weight: 800; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    .btn { background: var(--metallic-blue); color: white; border: var(--border-metallic); padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; text-decoration: none; display: inline-block; }
+    .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+    
+    .content-area { padding: 1rem 2rem 2rem 2rem; }
+    .section-title { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    
+    table { width: 100%; border-collapse: collapse; background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+    th, td { padding: 1rem 1.25rem; text-align: left; border-bottom: var(--border-metallic); font-size: 0.9rem; }
+    th { background: #080d1a; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1.5px; }
+    tr:hover td { background: rgba(59, 130, 246, 0.05); }
+
+    .load-board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+    .load-offer-card { background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.5rem; position: relative; }
+    .load-offer-card .rate { font-size: 1.5rem; font-weight: 800; color: var(--success); float: right; }
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-
-  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-    <div class="flex items-center space-x-3">
-      <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
-      <span id="role-badge" class="text-xs bg-gray-700 text-gray-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">Dashboard</span>
-    </div>
-
-    <div class="flex space-x-6 text-sm font-medium">
-      <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
-      <a href="dashboard.html" class="text-blue-400 font-bold">Dashboard</a>
-      <a href="loadboard.html" class="text-gray-300 hover:text-white transition">Loadboard</a>
-      <a href="driver-portal.html" id="nav-driver" class="text-gray-300 hover:text-white transition">Driver Portal</a>
-    </div>
-
-    <div class="flex items-center space-x-3 text-sm">
-      <a href="profile.html" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg border border-gray-600 transition">
-        <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
-        <span id="user-display-name" class="font-medium">Profile</span>
-      </a>
-      <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-        Logout
-      </button>
-    </div>
-  </nav>
-
-  <main class="max-w-6xl mx-auto px-6 py-8">
-    <div class="flex justify-between items-center mb-8">
-      <div>
-        <h1 class="text-3xl font-bold">Dispatch Overview</h1>
-        <p class="text-gray-400 text-sm mt-1">Live metrics synced with Supabase</p>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1>Mastermind Matrix</h1>
+        <span>The Black Label</span>
       </div>
-      <a href="loadboard.html" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-        + Post Load on Loadboard
-      </a>
-    </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div class="bg-gray-800 p-5 rounded-xl border border-gray-700">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Loads</p>
-        <p id="stat-total" class="text-3xl font-bold mt-2 text-white">--</p>
+      <div class="user-profile-badge">
+        <div class="name" id="user-fullname">Loading operator...</div>
+        <div class="role-pill" id="user-role-badge">PULLING PROFILE</div>
       </div>
-      <div class="bg-gray-800 p-5 rounded-xl border border-gray-700">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Available Loads</p>
-        <p id="stat-available" class="text-3xl font-bold mt-2 text-green-400">--</p>
-      </div>
-      <div class="bg-gray-800 p-5 rounded-xl border border-gray-700">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">In Transit</p>
-        <p id="stat-transit" class="text-3xl font-bold mt-2 text-yellow-400">--</p>
-      </div>
-      <div class="bg-gray-800 p-5 rounded-xl border border-gray-700">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Delivered</p>
-        <p id="stat-delivered" class="text-3xl font-bold mt-2 text-blue-400">--</p>
-      </div>
-    </div>
-  </main>
 
-  <script>
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      <ul class="sidebar-nav">
+        <li><a href="#" class="active" onclick="switchView('dashboard')">Command Center</a></li>
+        <li><a href="#" onclick="switchView('loadboard')">Instant Load Board</a></li>
+        <li><a href="#" onclick="switchView('crm')">Carrier Pipeline (CRM)</a></li>
+        <li id="admin-driver-nav"><a href="driver-portal.html">Driver Terminal View</a></li>
+        <li><a href="profile.html">Operator Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <h2 id="view-title" style="font-size: 1.25rem; font-weight: 800; letter-spacing: 1px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Enterprise Dispatch Command</h2>
+        <div>
+          <button class="btn" id="logout-btn" style="background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);">Terminate Session</button>
+        </div>
+      </header>
+
+      <div id="main-view-container">
+        <div class="dashboard-grid">
+          <div class="card">
+            <h3>Active Telemetry Fleets</h3>
+            <div class="metric-value">14 / 14</div>
+          </div>
+          <div class="card">
+            <h3>Instant Loads Booked</h3>
+            <div class="metric-value">38</div>
+          </div>
+          <div class="card">
+            <h3>Average RPM (Spot)</h3>
+            <div class="metric-value" style="color: #38bdf8;">$3.42</div>
+          </div>
+          <div class="card" id="admin-revenue-card">
+            <h3>Gross Revenue (MTD)</h3>
+            <div class="metric-value" style="color: var(--success);">$148,950</div>
+          </div>
+        </div>
+        
+        <div class="content-area">
+          <div class="section-title">
+            <span>Active Spot & Contract Matrix</span>
+            <button class="btn" onclick="alert('Launching Instant Load Creator...')">+ Post New Load</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Load ID</th>
+                <th>Shipper / Broker</th>
+                <th>Lane (Origin → Destination)</th>
+                <th>Equipment</th>
+                <th>Rate / RPM</th>
+                <th>Telemetry Status</th>
+              </tr>
+            </thead>
+            <tbody id="loads-table-body">
+              <tr>
+                <td><strong>MM-8012</strong></td>
+                <td>Amazon Relay Direct</td>
+                <td>Chicago, IL → Columbus, OH</td>
+                <td>53' Dry Van</td>
+                <td>$1,850 ($3.65/mi)</td>
+                <td><span style="color:var(--success); font-weight:700;">● In Transit (GPS Active)</span></td>
+              </tr>
+              <tr>
+                <td><strong>MM-8013</strong></td>
+                <td>Uber Freight Spot</td>
+                <td>Atlanta, GA → Charlotte, NC</td>
+                <td>53' Reefer</td>
+                <td>$1,420 ($3.20/mi)</td>
+                <td><span style="color:var(--warning); font-weight:700;">● Facility Check-In</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function initDashboard() {
-      // Require Authentication
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = 'login.html';
+      // Auth Guard: Required Login
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
         return;
       }
 
-      // Fetch Profile from Supabase
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      const role = profile?.role || 'driver';
+      const user = session.user;
 
-      // Redirect Drivers Away from Dispatcher Dashboard
-      if (role === 'driver') {
+      // Pull Profile & Role from Supabase
+      const { data: profile } = await supabase.from('profiles').select('*').or(`user_id.eq.${user.id},id.eq.${user.id}`).single();
+      
+      const role = (profile?.role || 'DRIVER').toUpperCase();
+      const fullName = profile?.full_name || profile?.name || user.email.split('@')[0];
+
+      // Drivers cannot access Dispatcher/Admin Dashboard
+      if (role === 'DRIVER') {
         window.location.href = 'driver-portal.html';
         return;
       }
 
-      const name = profile?.full_name || user.email.split('@')[0];
-      document.getElementById('role-badge').innerText = role;
-      document.getElementById('user-display-name').innerText = name;
-      document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
+      // Display user details
+      document.getElementById('user-fullname').innerText = fullName;
+      document.getElementById('user-role-badge').innerText = role;
 
-      loadMetrics();
-    }
-
-    async function loadMetrics() {
-      const { data: loads } = await supabase.from('loads').select('status');
-      if (loads) {
-        document.getElementById('stat-total').innerText = loads.length;
-        document.getElementById('stat-available').innerText = loads.filter(l => l.status === 'available' || !l.status).length;
-        document.getElementById('stat-transit').innerText = loads.filter(l => l.status === 'in_transit').length;
-        document.getElementById('stat-delivered').innerText = loads.filter(l => l.status === 'delivered').length;
+      // ADMIN sees everything, DISPATCHER sees dispatch tools
+      if (role === 'ADMIN') {
+        document.getElementById('user-role-badge').style.background = '#059669';
       }
     }
 
-    async function handleLogout() {
+    document.getElementById('logout-btn').addEventListener('click', async () => {
       await supabase.auth.signOut();
-      window.location.href = 'login.html';
-    }
+      window.location.href = 'index.html';
+    });
+
+    window.switchView = function(view) {
+      const container = document.getElementById('main-view-container');
+      const title = document.getElementById('view-title');
+      if (view === 'loadboard') {
+        title.innerText = 'Instant Load Board (Amazon & Uber Freight Integration)';
+        container.innerHTML = `
+          <div class="content-area" style="padding-top: 2rem;">
+            <div class="section-title">Available Spot Loads - One-Click "Book Now"</div>
+            <div class="load-board-grid">
+              <div class="load-offer-card">
+                <div class="rate">$2,450</div>
+                <h3 style="color:#38bdf8; margin-bottom:0.5rem;">Chicago, IL → Nashville, TN</h3>
+                <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1rem;">53' Dry Van • 470 miles • $5.21/mi • Pickup Today 14:00</p>
+                <button class="btn" style="width:100%;" onclick="alert('Load Booked Successfully via Instant Contract!')">Book Load Now (Instant)</button>
+              </div>
+              <div class="load-offer-card">
+                <div class="rate">$3,100</div>
+                <h3 style="color:#38bdf8; margin-bottom:0.5rem;">Phoenix, AZ → Denver, CO</h3>
+                <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1rem;">53' Reefer • 850 miles • $3.64/mi • Pickup Tomorrow</p>
+                <button class="btn" style="width:100%;" onclick="alert('Load Booked Successfully via Instant Contract!')">Book Load Now (Instant)</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        location.reload();
+      }
+    };
 
     initDashboard();
   </script>
