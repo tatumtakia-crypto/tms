@@ -1,331 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mastermind Matrix: The Black Label - Enterprise Command</title>
-  <style>
-    :root {
-      --bg-primary: #060911;
-      --bg-surface: #0f1626;
-      --bg-card: #141f36;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --metallic-blue: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
-      --metallic-silver: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #64748b 100%);
-      --border-metallic: 1px solid rgba(148, 163, 184, 0.2);
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --sidebar-width: 280px;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
-    
-    body { background-color: var(--bg-primary); color: var(--text-main); min-height: 100vh; overflow: hidden; display: none; }
-    .app-container { display: flex; height: 100vh; }
-    
-    aside.sidebar { width: var(--sidebar-width); background-color: var(--bg-surface); border-right: var(--border-metallic); display: flex; flex-direction: column; }
-    .sidebar-brand { padding: 1.5rem; border-bottom: var(--border-metallic); background: #080d1a; }
-    .sidebar-brand h1 { font-size: 1.05rem; font-weight: 900; letter-spacing: 2px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
-    .sidebar-brand span { font-size: 0.65rem; color: #06b6d4; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; display: block; margin-top: 4px; }
-
-    .sidebar-nav { list-style: none; padding: 1rem; overflow-y: auto; flex: 1; }
-    .sidebar-nav li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; transition: all 0.3s ease; border: 1px solid transparent; }
-    .sidebar-nav li a:hover, .sidebar-nav li a.active { background: var(--metallic-blue); color: #ffffff; border-color: rgba(255,255,255,0.3); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
-
-    main.main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background-color: var(--bg-primary); }
-    header.top-header { height: 75px; background-color: var(--bg-surface); border-bottom: var(--border-metallic); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; }
-    
-    .header-actions { display: flex; align-items: center; gap: 1rem; }
-    
-    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; padding: 2rem 2rem 1rem 2rem; }
-    .card { background-color: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
-    .card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--metallic-blue); }
-    .card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 700; }
-    .card .metric-value { font-size: 2rem; font-weight: 800; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    
-    .btn { background: var(--metallic-blue); color: white; border: var(--border-metallic); padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
-    
-    .btn-secondary { background: #1e293b; color: var(--text-main); }
-    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
-
-    .content-area { padding: 1rem 2rem 2rem 2rem; }
-    .section-title { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
-    
-    table { width: 100%; border-collapse: collapse; background: var(--bg-card); border: var(--border-metallic); border-radius: 0.75rem; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
-    th, td { padding: 1rem 1.25rem; text-align: left; border-bottom: var(--border-metallic); font-size: 0.9rem; }
-    th { background: #080d1a; color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1.5px; }
-    tr:hover td { background: rgba(59, 130, 246, 0.05); }
-
-    .badge { padding: 0.25rem 0.6rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; display: inline-block; }
-    .badge-available { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; }
-    .badge-assigned { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; }
-    .badge-transit { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid #10b981; }
-
-    /* Modal Styling */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(5px); }
-    .modal-card { background: var(--bg-surface); border: var(--border-metallic); border-radius: 1rem; width: 90%; max-width: 480px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative; }
-    .modal-header { font-size: 1.2rem; font-weight: 900; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 1.5rem; border-bottom: var(--border-metallic); padding-bottom: 0.75rem; }
-    .profile-field { margin-bottom: 1rem; }
-    .profile-field label { display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem; font-weight: 700; }
-    .profile-field div { font-size: 0.95rem; font-weight: 600; color: var(--text-main); background: #080d1a; padding: 0.75rem; border-radius: 0.5rem; border: var(--border-metallic); }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dispatch Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-  <div class="app-container">
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <h1>Mastermind Matrix</h1>
-        <span>The Black Label</span>
-      </div>
-      <ul class="sidebar-nav">
-        <li><a href="#" id="nav-dashboard" class="active" onclick="switchView('dashboard')">Command Center</a></li>
-        <li><a href="#" id="nav-loadboard" onclick="switchView('loadboard')">Instant Load Board</a></li>
-      </ul>
-    </aside>
+<body class="bg-gray-900 text-white min-h-screen">
 
-    <main class="main-content">
-      <header class="top-header">
-        <h2 id="view-title" style="font-size: 1.25rem; font-weight: 800; letter-spacing: 1px; background: var(--metallic-silver); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Enterprise Dispatch Command</h2>
-        <div class="header-actions">
-          <button class="btn btn-secondary" id="open-profile-btn">View Profile</button>
-          <button class="btn btn-danger" id="logout-btn">Terminate Session</button>
-        </div>
-      </header>
+  <!-- Navigation -->
+  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
+      <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded font-semibold">Dashboard</span>
+    </div>
+    <div class="flex space-x-6 text-sm font-medium">
+      <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
+      <a href="dashboard.html" class="text-blue-400 font-bold">Dashboard</a>
+      <a href="loadboard.html" class="text-gray-300 hover:text-white transition">Loadboard</a>
+      <a href="driver-portal.html" class="text-gray-300 hover:text-white transition">Driver Portal</a>
+    </div>
+  </nav>
 
-      <div id="main-view-container">
-        <div class="dashboard-grid">
-          <div class="card">
-            <h3>Active Dispatched Loads</h3>
-            <div class="metric-value" id="metric-active">0</div>
-          </div>
-          <div class="card">
-            <h3>Available Spot Loads</h3>
-            <div class="metric-value" id="metric-available" style="color: #38bdf8;">0</div>
-          </div>
-          <div class="card">
-            <h3>Uploaded POD Docs</h3>
-            <div class="metric-value" id="metric-docs">0</div>
-          </div>
-          <div class="card">
-            <h3>Gross Revenue (MTD)</h3>
-            <div class="metric-value" style="color: var(--success);">$148,950</div>
-          </div>
-        </div>
-        
-        <div class="content-area">
-          <div class="section-title">
-            <span id="table-section-heading">Active Dispatched & Accepted Loads</span>
-            <button class="btn" onclick="postNewDemoLoad()">+ Post New Spot Load</button>
-          </div>
-          <table id="dispatch-table">
-            <thead>
-              <tr id="table-header-row">
-                <th>Load ID</th>
-                <th>Shipper / Broker</th>
-                <th>Lane (Origin → Destination)</th>
-                <th>Equipment</th>
-                <th>Rate</th>
-                <th>Assigned Driver</th>
-                <th>Telemetry / Docs</th>
-              </tr>
-            </thead>
-            <tbody id="dispatch-table-body"></tbody>
-          </table>
-        </div>
+  <main class="max-w-6xl mx-auto px-6 py-8">
+    <!-- Header with Quick Action to Loadboard -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      <div>
+        <h1 class="text-3xl font-bold">Dispatch Overview</h1>
+        <p class="text-gray-400 text-sm mt-1">Real-time system stats synced with Supabase</p>
       </div>
-    </main>
-  </div>
-
-  <!-- User Profile Modal -->
-  <div class="modal-overlay" id="profile-modal">
-    <div class="modal-card">
-      <div class="modal-header">Operator Identity & Credentials</div>
-      <div class="profile-field">
-        <label>Account Email</label>
-        <div id="prof-email">Loading...</div>
-      </div>
-      <div class="profile-field">
-        <label>Access Role / Privilege Level</label>
-        <div id="prof-role">Loading...</div>
-      </div>
-      <div class="profile-field">
-        <label>User UUID</label>
-        <div id="prof-id" style="font-family: monospace; font-size: 0.8rem;">Loading...</div>
-      </div>
-      <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
-        <button class="btn btn-secondary" id="close-profile-btn">Close Window</button>
+      <div class="flex space-x-3">
+        <button onclick="redirectToLoadboard()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+          + Post Load on Loadboard
+        </button>
+        <a href="loadboard.html" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition">
+          Go to Loadboard
+        </a>
       </div>
     </div>
-  </div>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <!-- Live Supabase Summary Metrics -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-gray-800 p-5 rounded-xl border border-gray-700">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Loads</p>
+        <p id="stat-total" class="text-3xl font-bold mt-2 text-white">--</p>
+      </div>
+      <div class="bg-gray-800 p-5 rounded-xl border border-gray-700">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Available Loads</p>
+        <p id="stat-available" class="text-3xl font-bold mt-2 text-green-400">--</p>
+      </div>
+      <div class="bg-gray-800 p-5 rounded-xl border border-gray-700">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">In Transit</p>
+        <p id="stat-transit" class="text-3xl font-bold mt-2 text-yellow-400">--</p>
+      </div>
+      <div class="bg-gray-800 p-5 rounded-xl border border-gray-700">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Delivered</p>
+        <p id="stat-delivered" class="text-3xl font-bold mt-2 text-blue-400">--</p>
+      </div>
+    </div>
 
-    let currentView = 'dashboard';
+    <!-- Dashboard Actions & Information -->
+    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+      <h2 class="text-xl font-bold mb-4">Freight Management Control</h2>
+      <p class="text-gray-400 text-sm mb-6">
+        All load data and driver assignments are managed live on the Loadboard. Click below to view, create, or update shipments directly on the Loadboard.
+      </p>
+      <a href="loadboard.html" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg transition">
+        <span>Open Loadboard</span>
+        <span>&rarr;</span>
+      </a>
+    </div>
+  </main>
 
-    const DEFAULT_LOADS = [
-      { id: 'MM-8012', shipper: 'Amazon Relay Direct', origin: 'Chicago, IL', destination: 'Columbus, OH', equipment: "53' Dry Van", rate: '$1,850', status: 'ASSIGNED', driver_id: null, driver_email: null, docs: [] },
-      { id: 'MM-8013', shipper: 'Uber Freight Spot', origin: 'Atlanta, GA', destination: 'Charlotte, NC', equipment: "53' Reefer", rate: '$1,420', status: 'AVAILABLE', driver_id: null, driver_email: null, docs: [] },
-      { id: 'MM-8014', shipper: 'TQL Logistics', origin: 'Dallas, TX', destination: 'Houston, TX', equipment: "53' Dry Van", rate: '$950', status: 'AVAILABLE', driver_id: null, driver_email: null, docs: [] },
-      { id: 'MM-8015', shipper: 'CH Robinson', origin: 'Phoenix, AZ', destination: 'Denver, CO', equipment: "53' Reefer", rate: '$3,100', status: 'AVAILABLE', driver_id: null, driver_email: null, docs: [] },
-      { id: 'MM-8016', shipper: 'Coyote Logistics', origin: 'Memphis, TN', destination: 'Nashville, TN', equipment: "53' Flatbed", rate: '$1,250', status: 'AVAILABLE', driver_id: null, driver_email: null, docs: [] }
-    ];
+  <script>
+    // Initialize Supabase Client
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function getLoads() {
-      const stored = localStorage.getItem('mm_matrix_loads');
-      if (!stored) {
-        localStorage.setItem('mm_matrix_loads', JSON.stringify(DEFAULT_LOADS));
-        return DEFAULT_LOADS;
+    // Redirect Helper
+    function redirectToLoadboard() {
+      window.location.href = 'loadboard.html';
+    }
+
+    // Fetch Aggregated Metrics Directly from Supabase
+    async function loadDashboardMetrics() {
+      const { data: loads, error } = await supabase.from('loads').select('status');
+
+      if (error) {
+        console.error('Error fetching dashboard stats:', error);
+        return;
       }
-      return JSON.parse(stored);
-    }
 
-    function saveLoads(loads) {
-      localStorage.setItem('mm_matrix_loads', JSON.stringify(loads));
-      window.dispatchEvent(new Event('storage'));
-    }
-
-    // Auth Guard
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        window.location.href = 'index.html';
-      } else {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single();
-
-        if (profile?.role === 'DRIVER') {
-          window.location.href = 'driver-portal.html';
-        } else {
-          document.body.style.display = 'block';
-          
-          document.getElementById('prof-email').innerText = session.user.email || 'N/A';
-          document.getElementById('prof-role').innerText = profile?.role || 'OPERATOR / DISPATCH';
-          document.getElementById('prof-id').innerText = session.user.id;
-
-          renderAdminDashboard();
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      window.location.href = 'index.html';
-    }
-
-    function renderAdminDashboard() {
-      const loads = getLoads();
-      const activeLoads = loads.filter(l => l.status !== 'AVAILABLE');
-      const availableLoads = loads.filter(l => l.status === 'AVAILABLE');
-      const totalDocs = loads.reduce((acc, l) => acc + (l.docs ? l.docs.length : 0), 0);
-
-      document.getElementById('metric-active').innerText = activeLoads.length;
-      document.getElementById('metric-available').innerText = availableLoads.length;
-      document.getElementById('metric-docs').innerText = totalDocs;
-
-      const tbody = document.getElementById('dispatch-table-body');
-      
-      if (currentView === 'dashboard') {
-        document.getElementById('view-title').innerText = 'Enterprise Dispatch Command';
-        document.getElementById('table-section-heading').innerText = 'Active Dispatched & Driver Accepted Loads';
-        
-        if (activeLoads.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">No active loads currently accepted or assigned to drivers.</td></tr>`;
-        } else {
-          tbody.innerHTML = activeLoads.map(load => `
-            <tr>
-              <td><strong>${load.id}</strong></td>
-              <td>${load.shipper}</td>
-              <td>${load.origin} → ${load.destination}</td>
-              <td>${load.equipment}</td>
-              <td><strong>${load.rate}</strong></td>
-              <td>
-                <span style="color: #38bdf8; font-weight:700;">
-                  ${load.driver_email ? load.driver_email : 'Driver Assigned'}
-                </span>
-              </td>
-              <td>
-                <span class="badge ${load.status === 'DELIVERED' ? 'badge-transit' : 'badge-assigned'}">
-                  ${load.status}
-                </span>
-                ${load.docs && load.docs.length > 0 ? `
-                  <span style="margin-left: 8px; color: var(--success); font-weight:700; font-size:0.8rem;">
-                    📄 ${load.docs.length} Doc Uploaded
-                  </span>
-                ` : ''}
-              </td>
-            </tr>
-          `).join('');
-        }
-      } else if (currentView === 'loadboard') {
-        document.getElementById('view-title').innerText = 'Instant Load Board Pool';
-        document.getElementById('table-section-heading').innerText = 'Unassigned Spot Loads (Available for Drivers)';
-        
-        if (availableLoads.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">All available loads have been accepted by drivers.</td></tr>`;
-        } else {
-          tbody.innerHTML = availableLoads.map(load => `
-            <tr>
-              <td><strong>${load.id}</strong></td>
-              <td>${load.shipper}</td>
-              <td>${load.origin} → ${load.destination}</td>
-              <td>${load.equipment}</td>
-              <td><strong style="color:var(--success);">${load.rate}</strong></td>
-              <td><span style="color:var(--text-muted);">Unassigned</span></td>
-              <td><span class="badge badge-available">AVAILABLE</span></td>
-            </tr>
-          `).join('');
-        }
+      if (loads) {
+        document.getElementById('stat-total').innerText = loads.length;
+        document.getElementById('stat-available').innerText = loads.filter(l => l.status === 'available' || !l.status).length;
+        document.getElementById('stat-transit').innerText = loads.filter(l => l.status === 'in_transit').length;
+        document.getElementById('stat-delivered').innerText = loads.filter(l => l.status === 'delivered').length;
       }
     }
 
-    window.switchView = function(view) {
-      currentView = view;
-      document.getElementById('nav-dashboard').classList.toggle('active', view === 'dashboard');
-      document.getElementById('nav-loadboard').classList.toggle('active', view === 'loadboard');
-      renderAdminDashboard();
-    };
-
-    window.postNewDemoLoad = function() {
-      const loadNum = 'MM-' + Math.floor(1000 + Math.random() * 9000);
-      let loads = getLoads();
-      loads.push({
-        id: loadNum,
-        shipper: 'Amazon Relay Direct',
-        origin: 'Indianapolis, IN',
-        destination: 'Louisville, KY',
-        equipment: "53' Dry Van",
-        rate: '$1,650',
-        status: 'AVAILABLE',
-        driver_id: null,
-        driver_email: null,
-        docs: []
-      });
-      saveLoads(loads);
-      alert(`New spot load #${loadNum} posted to the load board!`);
-      renderAdminDashboard();
-    };
-
-    // Auto-update dashboard when driver accepts or releases loads in another tab
-    window.addEventListener('storage', () => renderAdminDashboard());
-
-    // Modal Events
-    document.getElementById('open-profile-btn').addEventListener('click', () => {
-      document.getElementById('profile-modal').style.display = 'flex';
-    });
-    document.getElementById('close-profile-btn').addEventListener('click', () => {
-      document.getElementById('profile-modal').style.display = 'none';
-    });
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      window.location.href = 'index.html';
-    });
+    loadDashboardMetrics();
   </script>
 </body>
 </html>
