@@ -9,22 +9,21 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col justify-between">
 
-  <!-- Navigation Bar with Profile and Logout -->
+  <!-- Navigation -->
   <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
     <div class="flex items-center space-x-3">
       <span class="text-2xl font-bold text-blue-500">FleetFlow</span>
-      <span id="role-badge" class="text-xs bg-blue-900 text-blue-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">Guest</span>
+      <span id="role-badge" class="text-xs bg-blue-900 text-blue-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">Loading...</span>
     </div>
     
     <div id="nav-links" class="flex items-center space-x-6 text-sm font-medium">
       <a href="index.html" class="text-blue-400 font-bold">Home</a>
-      <a href="dashboard.html" class="nav-role-restricted text-gray-300 hover:text-white transition">Dashboard</a>
-      <a href="loadboard.html" class="nav-role-restricted text-gray-300 hover:text-white transition">Loadboard</a>
-      <a href="driver-portal.html" class="text-gray-300 hover:text-white transition">Driver Portal</a>
+      <a href="dashboard.html" id="nav-dashboard" class="text-gray-300 hover:text-white transition">Dashboard</a>
+      <a href="loadboard.html" id="nav-loadboard" class="text-gray-300 hover:text-white transition">Loadboard</a>
+      <a href="driver-portal.html" id="nav-driver" class="text-gray-300 hover:text-white transition">Driver Portal</a>
     </div>
 
-    <!-- User Profile & Logout Controls -->
-    <div id="user-controls" class="flex items-center space-x-3 text-sm">
+    <div class="flex items-center space-x-3 text-sm">
       <a href="profile.html" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg border border-gray-600 transition">
         <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
         <span id="user-display-name" class="font-medium">Profile</span>
@@ -35,19 +34,16 @@
     </div>
   </nav>
 
-  <!-- Dynamic Role Hero Section -->
   <main class="max-w-5xl mx-auto px-6 py-12 text-center">
     <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4" id="hero-title">
-      Logistics Operations Hub
+      Fleet Operations Portal
     </h1>
     <p class="text-lg text-gray-400 max-w-2xl mx-auto mb-8" id="hero-subtitle">
-      Real-time load tracking, driver dispatching, and system monitoring powered by Supabase.
+      Welcome back. View your active portal based on your assigned role.
     </p>
 
-    <!-- Role-Based Action Cards -->
     <div id="role-cards-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mt-8">
-      <!-- Loading Placeholder -->
-      <div class="col-span-full text-center text-gray-400 py-8">Checking user session and permissions...</div>
+      <div class="col-span-full text-center text-gray-400 py-8">Checking permissions...</div>
     </div>
   </main>
 
@@ -60,93 +56,89 @@
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentUser = null;
-    let userRole = 'driver'; // Default fallback role: 'driver', 'dispatcher', or 'admin'
-
-    async function initAuth() {
+    async function init() {
+      // Auth Guard: Force login if unauthenticated
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
-        // Guest mode fallback
-        document.getElementById('user-display-name').innerText = 'Guest';
-        document.getElementById('user-avatar').innerText = 'G';
-        renderRoleViews('guest');
+        window.location.href = 'login.html';
         return;
       }
 
-      currentUser = user;
-      
-      // Fetch role from Supabase user metadata or profiles table
-      const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single();
-      userRole = profile?.role || user.user_metadata?.role || 'driver';
+      // Fetch Profile & Role directly from Supabase DB
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const role = profile?.role || 'driver';
       const name = profile?.full_name || user.email.split('@')[0];
 
-      // Update Navigation Bar UI
-      document.getElementById('role-badge').innerText = userRole;
+      document.getElementById('role-badge').innerText = role;
       document.getElementById('user-display-name').innerText = name;
       document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
 
-      renderRoleViews(userRole);
+      renderRoleUI(role);
     }
 
-    function renderRoleViews(role) {
-      const cardsContainer = document.getElementById('role-cards-container');
+    function renderRoleUI(role) {
+      const container = document.getElementById('role-cards-container');
 
       if (role === 'driver') {
-        document.getElementById('hero-title').innerText = 'Driver Control Center';
-        document.getElementById('hero-subtitle').innerText = 'View your active trip assignments and update route progress directly.';
-        
-        cardsContainer.innerHTML = `
+        document.getElementById('nav-dashboard').classList.add('hidden');
+        document.getElementById('nav-loadboard').classList.add('hidden');
+
+        container.innerHTML = `
           <div class="bg-gray-800 p-6 rounded-xl border border-yellow-500/30 col-span-full md:col-span-2">
             <h2 class="text-2xl font-bold mb-2 text-yellow-400">Driver Portal</h2>
-            <p class="text-gray-300 text-sm mb-6">Manage your assigned loads, report transit progress, and record deliveries.</p>
+            <p class="text-gray-300 text-sm mb-6">View your active assignments and update load statuses.</p>
             <a href="driver-portal.html" class="inline-block bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-6 py-3 rounded-lg transition">
-              Open Driver Portal &rarr;
+              Go to Driver Portal &rarr;
             </a>
           </div>
           <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-            <h2 class="text-xl font-bold mb-2 text-blue-400">Your Account Profile</h2>
-            <p class="text-gray-400 text-sm mb-6">Update contact information, view your vehicle ID, and account settings.</p>
-            <a href="profile.html" class="inline-block text-blue-400 hover:underline font-semibold text-sm">
-              Manage Profile &rarr;
-            </a>
+            <h2 class="text-xl font-bold mb-2 text-blue-400">Profile Settings</h2>
+            <p class="text-gray-400 text-sm mb-6">Manage personal information and driver ID.</p>
+            <a href="profile.html" class="inline-block text-blue-400 font-semibold text-sm">View Profile &rarr;</a>
           </div>`;
-      } else {
-        // Dispatcher or Admin Role
-        document.getElementById('hero-title').innerText = 'Dispatch & Operations Dashboard';
-        document.getElementById('hero-subtitle').innerText = 'Full system oversight to post loads, assign drivers, and monitor delivery workflows.';
 
-        cardsContainer.innerHTML = `
+      } else if (role === 'dispatcher') {
+        document.getElementById('nav-driver').classList.add('hidden');
+
+        container.innerHTML = `
           <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
             <h2 class="text-xl font-bold mb-2 text-blue-400">Dispatch Dashboard</h2>
-            <p class="text-gray-400 text-sm mb-6">Real-time stats, fleet metrics, and high-level system overview.</p>
-            <a href="dashboard.html" class="inline-block text-blue-400 hover:text-blue-300 font-semibold text-sm">
-              Open Dashboard &rarr;
-            </a>
+            <p class="text-gray-400 text-sm mb-6">Monitor live stats and operational load metrics.</p>
+            <a href="dashboard.html" class="inline-block text-blue-400 font-semibold text-sm">Open Dashboard &rarr;</a>
+          </div>
+          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 col-span-2">
+            <h2 class="text-xl font-bold mb-2 text-green-400">Loadboard Operations</h2>
+            <p class="text-gray-400 text-sm mb-6">Create new loads, assign drivers, and manage active shipments.</p>
+            <a href="loadboard.html" class="inline-block bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-3 rounded-lg transition">Open Loadboard &rarr;</a>
+          </div>`;
+
+      } else if (role === 'admin') {
+        // Admin Sees Everything
+        container.innerHTML = `
+          <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+            <h2 class="text-xl font-bold mb-2 text-blue-400">Dispatch Dashboard</h2>
+            <p class="text-gray-400 text-sm mb-6">System overview and analytics.</p>
+            <a href="dashboard.html" class="inline-block text-blue-400 font-semibold text-sm">Open &rarr;</a>
           </div>
           <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-            <h2 class="text-xl font-bold mb-2 text-green-400">Freight Loadboard</h2>
-            <p class="text-gray-400 text-sm mb-6">Post new shipments, edit load status, and manage active driver assignments.</p>
-            <a href="loadboard.html" class="inline-block text-green-400 hover:text-green-300 font-semibold text-sm">
-              Go to Loadboard &rarr;
-            </a>
+            <h2 class="text-xl font-bold mb-2 text-green-400">Loadboard</h2>
+            <p class="text-gray-400 text-sm mb-6">Post and edit all freight entries.</p>
+            <a href="loadboard.html" class="inline-block text-green-400 font-semibold text-sm">Open &rarr;</a>
           </div>
           <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
             <h2 class="text-xl font-bold mb-2 text-yellow-400">Driver Portal View</h2>
-            <p class="text-gray-400 text-sm mb-6">Preview driver schedules, active routes, and driver status updates.</p>
-            <a href="driver-portal.html" class="inline-block text-yellow-400 hover:text-yellow-300 font-semibold text-sm">
-              Open Driver Portal &rarr;
-            </a>
+            <p class="text-gray-400 text-sm mb-6">Review driver portal assignments.</p>
+            <a href="driver-portal.html" class="inline-block text-yellow-400 font-semibold text-sm">Open &rarr;</a>
           </div>`;
       }
     }
 
     async function handleLogout() {
       await supabase.auth.signOut();
-      window.location.reload();
+      window.location.href = 'login.html';
     }
 
-    initAuth();
+    init();
   </script>
 </body>
 </html>
