@@ -71,7 +71,9 @@
       const { data: profile } = await supabase.from('profiles').select('role').or(`user_id.eq.${userId},id.eq.${userId}`).single();
       const role = profile?.role?.toUpperCase() || 'DRIVER';
 
-      if (role === 'DRIVER') {
+      if (role === 'ADMIN') {
+        window.location.href = 'admin.html';
+      } else if (role === 'DRIVER') {
         window.location.href = 'driver-portal.html';
       } else {
         window.location.href = 'dashboard.html';
