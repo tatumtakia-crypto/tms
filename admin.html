@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | Full Access & Permissions</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex h-screen overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gray-950 border-r border-gray-800 flex flex-col justify-between shrink-0">
+    <div>
+      <!-- Brand Logo -->
+      <div class="h-16 flex items-center px-6 border-b border-gray-800 space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-500/30">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <span class="text-lg font-bold tracking-wide text-white">ApexAdmin <span class="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 font-semibold uppercase">ROOT</span></span>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="p-4 space-y-1 text-sm font-medium">
+        <a href="#dashboard" class="nav-btn active flex items-center px-4 py-3 text-indigo-400 bg-indigo-600/10 rounded-xl border border-indigo-500/20 transition">
+          <i class="fa-solid fa-chart-pie w-5 mr-3"></i> Dashboard Overview
+        </a>
+        <a href="#users" class="nav-btn flex items-center px-4 py-3 text-gray-400 hover:text-gray-200 hover:bg-gray-800/60 rounded-xl transition">
+          <i class="fa-solid fa-users-gear w-5 mr-3"></i> User & Access Control
+        </a>
+        <a href="#permissions" class="nav-btn flex items-center px-4 py-3 text-gray-400 hover:text-gray-200 hover:bg-gray-800/60 rounded-xl transition">
+          <i class="fa-solid fa-key w-5 mr-3"></i> Permission Matrix
+        </a>
+        <a href="#security" class="nav-btn flex items-center px-4 py-3 text-gray-400 hover:text-gray-200 hover:bg-gray-800/60 rounded-xl transition">
+          <i class="fa-solid fa-user-shield w-5 mr-3"></i> Security & Audit Logs
+        </a>
+        <a href="#database" class="nav-btn flex items-center px-4 py-3 text-gray-400 hover:text-gray-200 hover:bg-gray-800/60 rounded-xl transition">
+          <i class="fa-solid fa-database w-5 mr-3"></i> System & Database
+        </a>
+        <a href="#settings" class="nav-btn flex items-center px-4 py-3 text-gray-400 hover:text-gray-200 hover:bg-gray-800/60 rounded-xl transition">
+          <i class="fa-solid fa-sliders w-5 mr-3"></i> Global Settings
+        </a>
+      </nav>
+    </div>
+
+    <!-- Admin Status Banner -->
+    <div class="p-4 border-t border-gray-800">
+      <div class="p-3 bg-red-950/40 border border-red-800/50 rounded-xl">
+        <div class="flex items-center space-x-2 text-xs font-semibold text-red-400 mb-1">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          </span>
+          FULL ADMINISTRATIVE PRIVILEGES
+        </div>
+        <p class="text-xs text-gray-400">All Security & Write Barriers Bypassed (*:*)</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 flex flex-col h-full overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="h-16 bg-gray-950/80 backdrop-blur border-b border-gray-800 px-8 flex items-center justify-between shrink-0">
+      <div class="flex items-center space-x-4 w-1/3">
+        <div class="relative w-full">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
+          <input type="text" placeholder="Search system resources, users, logs..." class="w-full bg-gray-900 border border-gray-800 rounded-lg pl-9 pr-4 py-1.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500">
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <!-- Quick Action Trigger -->
+        <button onclick="openModal('grantModal')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center space-x-2 transition shadow-md shadow-indigo-600/20">
+          <i class="fa-solid fa-plus"></i>
+          <span>Grant Privilege Role</span>
+        </button>
+
+        <!-- System Notifications -->
+        <button class="relative text-gray-400 hover:text-gray-200 p-2 rounded-lg hover:bg-gray-800">
+          <i class="fa-regular fa-bell text-lg"></i>
+          <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+
+        <!-- Admin Profile -->
+        <div class="flex items-center space-x-3 border-l border-gray-800 pl-4">
+          <img src="https://ui-avatars.com/api/?name=Super+Admin&background=4f46e5&color=fff" class="w-9 h-9 rounded-full ring-2 ring-indigo-500" alt="Admin Avatar">
+          <div class="text-left text-xs">
+            <div class="font-bold text-gray-200">Super Administrator</div>
+            <div class="text-indigo-400">root@system.internal</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Scrollable Workspace Body -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8">
+
+      <!-- Hero Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-white tracking-tight">System Control Center</h1>
+          <p class="text-sm text-gray-400 mt-1">Manage global security policies, explicit role grants, and administrative overrides.</p>
+        </div>
+        <div class="flex space-x-3">
+          <button onclick="toggleAllPermissions(true)" class="bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/30 text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center space-x-2 transition">
+            <i class="fa-solid fa-check-double"></i>
+            <span>Enable All Permissions</span>
+          </button>
+          <button onclick="toggleAllPermissions(false)" class="bg-red-600/20 border border-red-500/30 text-red-400 hover:bg-red-600/30 text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center space-x-2 transition">
+            <i class="fa-solid fa-ban"></i>
+            <span>Revoke All</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Overview Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-sm">
+          <div class="flex justify-between items-center text-gray-400 mb-2">
+            <span class="text-xs font-semibold tracking-wider uppercase">Active Superusers</span>
+            <i class="fa-solid fa-user-shield text-indigo-400"></i>
+          </div>
+          <div class="text-2xl font-bold text-white">12</div>
+          <p class="text-xs text-emerald-400 mt-2"><i class="fa-solid fa-arrow-up"></i> 100% Granted Root Access</p>
+        </div>
+
+        <div class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-sm">
+          <div class="flex justify-between items-center text-gray-400 mb-2">
+            <span class="text-xs font-semibold tracking-wider uppercase">Total Managed Users</span>
+            <i class="fa-solid fa-users text-blue-400"></i>
+          </div>
+          <div class="text-2xl font-bold text-white">14,892</div>
+          <p class="text-xs text-gray-500 mt-2">+342 accounts created today</p>
+        </div>
+
+        <div class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-sm">
+          <div class="flex justify-between items-center text-gray-400 mb-2">
+            <span class="text-xs font-semibold tracking-wider uppercase">Active API Credentials</span>
+            <i class="fa-solid fa-key text-amber-400"></i>
+          </div>
+          <div class="text-2xl font-bold text-white">84 / 84</div>
+          <p class="text-xs text-emerald-400 mt-2"><i class="fa-solid fa-shield-check"></i> Unlimited Read/Write Scopes</p>
+        </div>
+
+        <div class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-sm">
+          <div class="flex justify-between items-center text-gray-400 mb-2">
+            <span class="text-xs font-semibold tracking-wider uppercase">System Security Level</span>
+            <i class="fa-solid fa-gauge-high text-red-400"></i>
+          </div>
+          <div class="text-2xl font-bold text-red-400">UNRESTRICTED</div>
+          <p class="text-xs text-gray-500 mt-2">Bypassing standard rate limits</p>
+        </div>
+      </div>
+
+      <!-- Permission Control Matrix -->
+      <div class="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/50">
+          <div>
+            <h2 class="text-base font-semibold text-white">Global Permission Policy Matrix</h2>
+            <p class="text-xs text-gray-400">Explicit granular permission control across modules</p>
+          </div>
+          <span class="px-2.5 py-1 text-xs font-mono font-medium rounded-md bg-indigo-950 text-indigo-300 border border-indigo-800">
+            Scope: Wildcard (*.*)
+          </span>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="permissionGrid">
+          
+          <!-- Permission Group 1 -->
+          <div class="bg-gray-900/60 border border-gray-800 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center"><i class="fa-solid fa-users-gear text-indigo-400 mr-2"></i> User Administration</h3>
+              <input type="checkbox" checked class="perm-toggle h-4 w-4 rounded border-gray-700 text-indigo-600 focus:ring-indigo-500 bg-gray-800">
+            </div>
+            <div class="space-y-2 text-xs text-gray-400">
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>user:create (Provision Users)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>user:read (View Sensitive Data)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>user:update (Modify Roles & Profiles)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>user:delete (Hard Delete Accounts)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+            </div>
+          </div>
+
+          <!-- Permission Group 2 -->
+          <div class="bg-gray-900/60 border border-gray-800 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center"><i class="fa-solid fa-database text-emerald-400 mr-2"></i> Database & Migration</h3>
+              <input type="checkbox" checked class="perm-toggle h-4 w-4 rounded border-gray-700 text-indigo-600 focus:ring-indigo-500 bg-gray-800">
+            </div>
+            <div class="space-y-2 text-xs text-gray-400">
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>db:raw_query (Execute SQL Queries)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>db:truncate (Drop/Purge Tables)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>db:export (Dump System Data)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>db:migrate (Run Schema Migrations)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+            </div>
+          </div>
+
+          <!-- Permission Group 3 -->
+          <div class="bg-gray-900/60 border border-gray-800 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center"><i class="fa-solid fa-lock text-red-400 mr-2"></i> System & Infrastructure</h3>
+              <input type="checkbox" checked class="perm-toggle h-4 w-4 rounded border-gray-700 text-indigo-600 focus:ring-indigo-500 bg-gray-800">
+            </div>
+            <div class="space-y-2 text-xs text-gray-400">
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>sys:reboot (Restart Cluster Nodes)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>sys:config (Edit Environment Variables)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>sys:logs (View Unfiltered System Logs)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>sys:firewall (Manage Port Rules)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+            </div>
+          </div>
+
+          <!-- Permission Group 4 -->
+          <div class="bg-gray-900/60 border border-gray-800 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center"><i class="fa-solid fa-coins text-amber-400 mr-2"></i> Financials & Billing</h3>
+              <input type="checkbox" checked class="perm-toggle h-4 w-4 rounded border-gray-700 text-indigo-600 focus:ring-indigo-500 bg-gray-800">
+            </div>
+            <div class="space-y-2 text-xs text-gray-400">
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>billing:payout (Trigger Manual Withdrawals)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>billing:refund (Issue Unlimited Refunds)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>billing:override (Override Pricing Tier)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+            </div>
+          </div>
+
+          <!-- Permission Group 5 -->
+          <div class="bg-gray-900/60 border border-gray-800 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center"><i class="fa-solid fa-gears text-purple-400 mr-2"></i> API & Webhooks</h3>
+              <input type="checkbox" checked class="perm-toggle h-4 w-4 rounded border-gray-700 text-indigo-600 focus:ring-indigo-500 bg-gray-800">
+            </div>
+            <div class="space-y-2 text-xs text-gray-400">
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>api:generate_root_key (Create System Keys)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>api:webhook_dispatch (Trigger Events)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>api:bypass_rate_limit (Unlimited Throughput)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+            </div>
+          </div>
+
+          <!-- Permission Group 6 -->
+          <div class="bg-gray-900/60 border border-gray-800 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center"><i class="fa-solid fa-eye-slash text-cyan-400 mr-2"></i> Audit & Governance</h3>
+              <input type="checkbox" checked class="perm-toggle h-4 w-4 rounded border-gray-700 text-indigo-600 focus:ring-indigo-500 bg-gray-800">
+            </div>
+            <div class="space-y-2 text-xs text-gray-400">
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>audit:purge (Delete Security Trail)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>audit:impersonate (Login As Any User)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+              <label class="flex items-center justify-between p-1.5 rounded hover:bg-gray-800/50 cursor-pointer">
+                <span>audit:export_compliance (Generate Reports)</span>
+                <input type="checkbox" checked class="perm-item h-3.5 w-3.5 rounded border-gray-700 text-indigo-600 bg-gray-800">
+              </label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- User Accounts Table -->
+      <div class="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+          <div>
+            <h2 class="text-base font-semibold text-white">Privileged Administrator Accounts</h2>
+            <p class="text-xs text-gray-400">Users with elevated permissions and active root sessions</p>
+          </div>
+          <button class="text-xs font-semibold text-indigo-400 hover:text-indigo-300">View All Accounts &rarr;</button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-900 text-gray-400 uppercase tracking-wider font-semibold border-b border-gray-800">
+              <tr>
+                <th class="px-6 py-3.5">User</th>
+                <th class="px-6 py-3.5">Assigned Role</th>
+                <th class="px-6 py-3.5">Permissions Scope</th>
+                <th class="px-6 py-3.5">MFA Status</th>
+                <th class="px-6 py-3.5">Last Active</th>
+                <th class="px-6 py-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800/60 text-gray-300">
+
+              <tr>
+                <td class="px-6 py-4 flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white">SA</div>
+                  <div>
+                    <div class="font-semibold text-white">System Superadmin</div>
+                    <div class="text-gray-500">root@system.internal</div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="px-2 py-1 rounded bg-red-500/20 text-red-400 font-semibold border border-red-500/30">Super Admin</span>
+                </td>
+                <td class="px-6 py-4 font-mono text-emerald-400">*.* (Full Unrestricted)</td>
+                <td class="px-6 py-4 text-emerald-400"><i class="fa-solid fa-shield-check mr-1"></i> Hardware Token</td>
+                <td class="px-6 py-4 text-gray-400">Just Now</td>
+                <td class="px-6 py-4 text-right space-x-2">
+                  <button class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded">Edit</button>
+                  <button class="px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 rounded">Logs</button>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="px-6 py-4 flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-white">JD</div>
+                  <div>
+                    <div class="font-semibold text-white">Jane Doe</div>
+                    <div class="text-gray-500">j.doe@company.com</div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="px-2 py-1 rounded bg-indigo-500/20 text-indigo-400 font-semibold border border-indigo-500/30">SecOps Admin</span>
+                </td>
+                <td class="px-6 py-4 font-mono text-gray-300">user:*, sys:*, audit:*</td>
+                <td class="px-6 py-4 text-emerald-400"><i class="fa-solid fa-mobile-screen mr-1"></i> TOTP Active</td>
+                <td class="px-6 py-4 text-gray-400">12 mins ago</td>
+                <td class="px-6 py-4 text-right space-x-2">
+                  <button class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded">Edit</button>
+                  <button class="px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 rounded">Logs</button>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="px-6 py-4 flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white">AS</div>
+                  <div>
+                    <div class="font-semibold text-white">Alex Smith</div>
+                    <div class="text-gray-500">a.smith@company.com</div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="px-2 py-1 rounded bg-amber-500/20 text-amber-400 font-semibold border border-amber-500/30">Database Lead</span>
+                </td>
+                <td class="px-6 py-4 font-mono text-gray-300">db:*, sys:logs</td>
+                <td class="px-6 py-4 text-emerald-400"><i class="fa-solid fa-mobile-screen mr-1"></i> TOTP Active</td>
+                <td class="px-6 py-4 text-gray-400">2 hours ago</td>
+                <td class="px-6 py-4 text-right space-x-2">
+                  <button class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded">Edit</button>
+                  <button class="px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 rounded">Logs</button>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal: Grant Privileges -->
+  <div id="grantModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+    <div class="bg-gray-950 border border-gray-800 rounded-xl w-full max-w-lg p-6 space-y-5 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center"><i class="fa-solid fa-user-plus text-indigo-500 mr-2"></i> Grant New Administrative Role</h3>
+        <button onclick="closeModal('grantModal')" class="text-gray-500 hover:text-gray-300"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form class="space-y-4 text-xs">
+        <div>
+          <label class="block text-gray-400 font-medium mb-1">Select User Account</label>
+          <input type="text" placeholder="Search by name or email..." class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-gray-400 font-medium mb-1">Assign Role Level</label>
+          <select class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-indigo-500">
+            <option>Super Administrator (*.* - All Permissions)</option>
+            <option>Database Administrator (db:*)</option>
+            <option>Security Officer (audit:*, sys:logs)</option>
+            <option>Custom Role Override</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-gray-400 font-medium mb-1">Expiration / Time-To-Live (TTL)</label>
+          <select class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-indigo-500">
+            <option>Permanent (No Expiration)</option>
+            <option>1 Hour (Temporary Elevation)</option>
+            <option>24 Hours</option>
+            <option>7 Days</option>
+          </select>
+        </div>
+
+        <div class="p-3 bg-indigo-950/40 border border-indigo-800/50 rounded-lg text-indigo-300">
+          <p class="font-semibold mb-0.5"><i class="fa-solid fa-circle-info mr-1"></i> Policy Enforcement</p>
+          This action will immediately append full permission flags to the user context and generate an immutable audit log entry.
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-3 border-t border-gray-800">
+          <button type="button" onclick="closeModal('grantModal')" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-semibold">Cancel</button>
+          <button type="button" onclick="closeModal('grantModal')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold">Confirm Role Grant</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Interactive JavaScript -->
+  <script>
+    // Toggle all permission checkboxes
+    function toggleAllPermissions(status) {
+      const checkboxes = document.querySelectorAll('.perm-toggle, .perm-item');
+      checkboxes.forEach(cb => cb.checked = status);
+    }
+
+    // Modal Handlers
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // Toggle sub-permissions when parent toggle is toggled
+    document.querySelectorAll('.perm-toggle').forEach(parentToggle => {
+      parentToggle.addEventListener('change', (e) => {
+        const container = e.target.closest('.bg-gray-900\\/60');
+        const items = container.querySelectorAll('.perm-item');
+        items.forEach(item => item.checked = e.target.checked);
+      });
+    });
+  </script>
+</body>
+</html>
