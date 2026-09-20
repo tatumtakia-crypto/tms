@@ -9,33 +9,47 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-  <!-- Navigation -->
-  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
+  <!-- Navigation Bar -->
+  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
     <div class="flex items-center space-x-3">
       <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
-      <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded font-semibold">Dashboard</span>
+      <span id="role-badge" class="text-xs bg-gray-700 text-gray-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">Dashboard</span>
     </div>
+
     <div class="flex space-x-6 text-sm font-medium">
       <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
       <a href="dashboard.html" class="text-blue-400 font-bold">Dashboard</a>
-      <a href="loadboard.html" class="text-gray-300 hover:text-white transition">Loadboard</a>
+      <a href="loadboard.html" id="loadboard-nav" class="text-gray-300 hover:text-white transition">Loadboard</a>
       <a href="driver-portal.html" class="text-gray-300 hover:text-white transition">Driver Portal</a>
+    </div>
+
+    <!-- User Profile & Logout -->
+    <div class="flex items-center space-x-3 text-sm">
+      <a href="profile.html" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg border border-gray-600 transition">
+        <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
+        <span id="user-display-name" class="font-medium">Profile</span>
+      </a>
+      <button onclick="handleLogout()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+        Logout
+      </button>
     </div>
   </nav>
 
   <main class="max-w-6xl mx-auto px-6 py-8">
-    <!-- Header with Quick Action to Loadboard -->
+    <!-- Dynamic Role Banner -->
+    <div id="role-banner" class="hidden mb-6 p-4 rounded-xl border bg-yellow-900/30 border-yellow-600 text-yellow-200">
+      <p class="text-sm font-semibold">Driver View Notice: You are accessing the system in Driver mode. Detailed dispatch tools are restricted to Dispatchers and Administrators.</p>
+    </div>
+
+    <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
       <div>
-        <h1 class="text-3xl font-bold">Dispatch Overview</h1>
-        <p class="text-gray-400 text-sm mt-1">Real-time system stats synced with Supabase</p>
+        <h1 class="text-3xl font-bold" id="dashboard-title">Dispatch Overview</h1>
+        <p class="text-gray-400 text-sm mt-1" id="dashboard-subtitle">Real-time system stats synced with Supabase</p>
       </div>
-      <div class="flex space-x-3">
-        <button onclick="redirectToLoadboard()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+      <div class="flex space-x-3" id="dispatch-actions">
+        <a href="loadboard.html" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
           + Post Load on Loadboard
-        </button>
-        <a href="loadboard.html" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition">
-          Go to Loadboard
         </a>
       </div>
     </div>
@@ -60,32 +74,49 @@
       </div>
     </div>
 
-    <!-- Dashboard Actions & Information -->
-    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-      <h2 class="text-xl font-bold mb-4">Freight Management Control</h2>
-      <p class="text-gray-400 text-sm mb-6">
-        All load data and driver assignments are managed live on the Loadboard. Click below to view, create, or update shipments directly on the Loadboard.
-      </p>
-      <a href="loadboard.html" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg transition">
-        <span>Open Loadboard</span>
-        <span>&rarr;</span>
+    <!-- Management Navigation Card -->
+    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h2 class="text-xl font-bold">Freight Operations Center</h2>
+        <p class="text-gray-400 text-sm mt-1">Manage active routes, dispatch drivers, and monitor status updates on the loadboard.</p>
+      </div>
+      <a href="loadboard.html" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg transition whitespace-nowrap">
+        Go to Loadboard &rarr;
       </a>
     </div>
   </main>
 
   <script>
-    // Initialize Supabase Client
     const SUPABASE_URL = 'YOUR_SUPABASE_URL';
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Redirect Helper
-    function redirectToLoadboard() {
-      window.location.href = 'loadboard.html';
+    let userRole = 'driver';
+
+    async function initDashboard() {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single();
+        userRole = profile?.role || user.user_metadata?.role || 'driver';
+        const name = profile?.full_name || user.email.split('@')[0];
+
+        document.getElementById('role-badge').innerText = userRole;
+        document.getElementById('user-display-name').innerText = name;
+        document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
+
+        if (userRole === 'driver') {
+          document.getElementById('role-banner').classList.remove('hidden');
+          document.getElementById('dispatch-actions').classList.add('hidden');
+          document.getElementById('dashboard-title').innerText = 'Driver Overview';
+          document.getElementById('dashboard-subtitle').innerText = 'Summary of active system metrics for your driver account';
+        }
+      }
+
+      loadMetrics();
     }
 
-    // Fetch Aggregated Metrics Directly from Supabase
-    async function loadDashboardMetrics() {
+    async function loadMetrics() {
       const { data: loads, error } = await supabase.from('loads').select('status');
 
       if (error) {
@@ -101,7 +132,12 @@
       }
     }
 
-    loadDashboardMetrics();
+    async function handleLogout() {
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    initDashboard();
   </script>
 </body>
 </html>
