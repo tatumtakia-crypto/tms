@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loadboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">Dispatch Loadboard</h1>
+      <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition">
+        + Post New Load
+      </button>
+    </div>
+
+    <!-- Active Loads Container -->
+    <div id="loads-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="col-span-full text-center py-10 text-gray-500" id="loading-spinner">
+        Loading loads from Supabase...
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Load Modal -->
+  <div id="load-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
+      <h2 class="text-xl font-bold mb-4">Post a New Load</h2>
+      <form id="add-load-form" onsubmit="handleCreateLoad(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Origin</label>
+          <input type="text" id="origin" required class="w-full mt-1 p-2 border rounded-md" placeholder="e.g. Atlanta, GA" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Destination</label>
+          <input type="text" id="destination" required class="w-full mt-1 p-2 border rounded-md" placeholder="e.g. Dallas, TX" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Rate ($)</label>
+          <input type="number" id="rate" required class="w-full mt-1 p-2 border rounded-md" placeholder="2500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Driver ID (Optional)</label>
+          <input type="text" id="driver_id" class="w-full mt-1 p-2 border rounded-md" placeholder="Assign to driver UUID" />
+        </div>
+        <div class="flex justify-end space-x-3 mt-6">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 border rounded-md hover:bg-gray-50">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Submit Load</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Supabase Client
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const container = document.getElementById('loads-container');
+    const modal = document.getElementById('load-modal');
+
+    // Fetch Loads from Supabase on Load
+    async function fetchLoads() {
+      const { data: loads, error } = await supabase
+        .from('loads')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching loads:', error);
+        container.innerHTML = `<div class="col-span-full text-red-500 text-center">Failed to load data.</div>`;
+        return;
+      }
+
+      renderLoads(loads);
+    }
+
+    // Render Load Cards
+    function renderLoads(loads) {
+      if (!loads || loads.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">No active loads available. Add one using the button above.</div>`;
+        return;
+      }
+
+      container.innerHTML = loads.map(load => `
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded ${
+                load.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+              }">
+                ${load.status || 'available'}
+              </span>
+              <span class="text-lg font-extrabold text-green-600">$${load.rate}</span>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800">${load.origin} ➔ ${load.destination}</h3>
+            <p class="text-xs text-gray-400 mt-1">ID: ${load.id}</p>
+          </div>
+          <div class="mt-4 pt-3 border-t text-sm text-gray-500">
+            Driver: ${load.driver_id ? load.driver_id : 'Unassigned'}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Insert Load into Supabase
+    async function handleCreateLoad(event) {
+      event.preventDefault();
+
+      const newLoad = {
+        origin: document.getElementById('origin').value,
+        destination: document.getElementById('destination').value,
+        rate: parseFloat(document.getElementById('rate').value),
+        driver_id: document.getElementById('driver_id').value || null,
+        status: 'available'
+      };
+
+      const { data, error } = await supabase
+        .from('loads')
+        .insert([newLoad])
+        .select();
+
+      if (error) {
+        alert('Error creating load: ' + error.message);
+      } else {
+        document.getElementById('add-load-form').reset();
+        closeModal();
+        fetchLoads();
+      }
+    }
+
+    // Realtime Updates Setup
+    function subscribeToChanges() {
+      supabase
+        .channel('public:loads')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'loads' }, () => {
+          fetchLoads();
+        })
+        .subscribe();
+    }
+
+    function openModal() { modal.classList.remove('hidden'); }
+    function closeModal() { modal.classList.add('hidden'); }
+
+    // On Execution
+    fetchLoads();
+    subscribeToChanges();
+  </script>
+</body>
+</html>
