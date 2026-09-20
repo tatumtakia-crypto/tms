@@ -9,7 +9,6 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- Navigation Bar -->
   <nav class="bg-gray-800 text-white border-b border-gray-700 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
     <div class="flex items-center space-x-3">
       <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
@@ -18,12 +17,11 @@
 
     <div class="flex space-x-6 text-sm font-medium">
       <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
-      <a href="dashboard.html" class="text-gray-300 hover:text-white transition">Dashboard</a>
+      <a href="dashboard.html" id="nav-dashboard" class="text-gray-300 hover:text-white transition">Dashboard</a>
       <a href="loadboard.html" class="text-green-400 font-bold">Loadboard</a>
-      <a href="driver-portal.html" class="text-gray-300 hover:text-white transition">Driver Portal</a>
+      <a href="driver-portal.html" id="nav-driver" class="text-gray-300 hover:text-white transition">Driver Portal</a>
     </div>
 
-    <!-- User Profile & Logout -->
     <div class="flex items-center space-x-3 text-sm">
       <a href="profile.html" class="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-lg border border-gray-600 transition">
         <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
@@ -36,22 +34,18 @@
   </nav>
 
   <div class="max-w-5xl mx-auto p-6">
-    <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-3xl font-bold text-gray-800">Dispatch Loadboard</h1>
-        <p class="text-sm text-gray-500 mt-1">Live updates directly synced via Supabase</p>
+        <p class="text-sm text-gray-500 mt-1">Live entries pulled from Supabase</p>
       </div>
       <button id="post-load-btn" onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg transition shadow-sm">
         + Post New Load
       </button>
     </div>
 
-    <!-- Active Loads Container -->
     <div id="loads-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="col-span-full text-center py-10 text-gray-500" id="loading-spinner">
-        Loading loads from Supabase...
-      </div>
+      <div class="col-span-full text-center py-10 text-gray-500">Loading loads...</div>
     </div>
   </div>
 
@@ -77,8 +71,8 @@
           <input type="text" id="driver_id" class="w-full mt-1 p-2 border rounded-md" placeholder="Assign to driver UUID" />
         </div>
         <div class="flex justify-end space-x-3 mt-6">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 border rounded-md hover:bg-gray-50">Cancel</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Submit Load</button>
+          <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 border rounded-md">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Submit Load</button>
         </div>
       </form>
     </div>
@@ -89,50 +83,38 @@
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const container = document.getElementById('loads-container');
-    const modal = document.getElementById('load-modal');
-    let userRole = 'driver';
-
-    async function initPage() {
+    async function initLoadboard() {
+      // Auth Guard
       const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single();
-        userRole = profile?.role || user.user_metadata?.role || 'driver';
-        const name = profile?.full_name || user.email.split('@')[0];
-
-        document.getElementById('role-badge').innerText = userRole;
-        document.getElementById('user-display-name').innerText = name;
-        document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
-
-        // Hide "Post Load" button if user is a driver
-        if (userRole === 'driver') {
-          document.getElementById('post-load-btn').classList.add('hidden');
-        }
-      }
-
-      fetchLoads();
-      subscribeToChanges();
-    }
-
-    async function fetchLoads() {
-      const { data: loads, error } = await supabase
-        .from('loads')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching loads:', error);
-        container.innerHTML = `<div class="col-span-full text-red-500 text-center py-8">Failed to load data from Supabase.</div>`;
+      if (!user) {
+        window.location.href = 'login.html';
         return;
       }
 
-      renderLoads(loads);
+      // Get User Profile & Role from Supabase
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const role = profile?.role || 'driver';
+
+      // Drivers can only view; hide post options
+      if (role === 'driver') {
+        document.getElementById('post-load-btn').classList.add('hidden');
+        document.getElementById('nav-dashboard').classList.add('hidden');
+      }
+
+      const name = profile?.full_name || user.email.split('@')[0];
+      document.getElementById('role-badge').innerText = role;
+      document.getElementById('user-display-name').innerText = name;
+      document.getElementById('user-avatar').innerText = name.charAt(0).toUpperCase();
+
+      fetchLoads();
     }
 
-    function renderLoads(loads) {
+    async function fetchLoads() {
+      const { data: loads } = await supabase.from('loads').select('*').order('created_at', { ascending: false });
+      const container = document.getElementById('loads-container');
+
       if (!loads || loads.length === 0) {
-        container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">No active loads available in database.</div>`;
+        container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500">No active loads available.</div>`;
         return;
       }
 
@@ -157,9 +139,8 @@
       `).join('');
     }
 
-    async function handleCreateLoad(event) {
-      event.preventDefault();
-
+    async function handleCreateLoad(e) {
+      e.preventDefault();
       const newLoad = {
         origin: document.getElementById('origin').value,
         destination: document.getElementById('destination').value,
@@ -169,31 +150,22 @@
       };
 
       const { error } = await supabase.from('loads').insert([newLoad]);
-
-      if (error) {
-        alert('Error creating load: ' + error.message);
-      } else {
-        document.getElementById('add-load-form').reset();
+      if (error) alert(error.message);
+      else {
         closeModal();
         fetchLoads();
       }
     }
 
-    function subscribeToChanges() {
-      supabase.channel('public:loads')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'loads' }, () => fetchLoads())
-        .subscribe();
-    }
-
-    function openModal() { modal.classList.remove('hidden'); }
-    function closeModal() { modal.classList.add('hidden'); }
+    function openModal() { document.getElementById('load-modal').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('load-modal').classList.add('hidden'); }
 
     async function handleLogout() {
       await supabase.auth.signOut();
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     }
 
-    initPage();
+    initLoadboard();
   </script>
 </body>
 </html>
