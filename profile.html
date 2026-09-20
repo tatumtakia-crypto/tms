@@ -9,7 +9,6 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col justify-between">
 
-  <!-- Navigation Bar -->
   <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
     <div class="flex items-center space-x-3">
       <a href="index.html" class="text-2xl font-bold text-blue-500">FleetFlow</a>
@@ -17,13 +16,9 @@
     </div>
     <div class="flex space-x-6 text-sm font-medium">
       <a href="index.html" class="text-gray-300 hover:text-white transition">Home</a>
-      <a href="dashboard.html" class="text-gray-300 hover:text-white transition">Dashboard</a>
-      <a href="loadboard.html" class="text-gray-300 hover:text-white transition">Loadboard</a>
-      <a href="driver-portal.html" class="text-gray-300 hover:text-white transition">Driver Portal</a>
     </div>
   </nav>
 
-  <!-- Profile Card -->
   <main class="max-w-xl mx-auto px-6 py-12 w-full">
     <div class="bg-gray-800 p-8 rounded-2xl border border-gray-700 shadow-xl space-y-6">
       <div class="flex items-center space-x-4 border-b border-gray-700 pb-6">
@@ -31,28 +26,23 @@
           U
         </div>
         <div>
-          <h1 class="text-2xl font-bold" id="profile-name">User Account</h1>
+          <h1 class="text-2xl font-bold" id="profile-name">User Profile</h1>
           <p class="text-sm text-gray-400" id="profile-email">loading...</p>
           <span id="profile-role-badge" class="inline-block mt-2 text-xs bg-blue-900 text-blue-300 px-2.5 py-0.5 rounded-full font-semibold uppercase">
-            driver
+            --
           </span>
         </div>
       </div>
 
-      <!-- Account Settings / Metadata Form -->
       <form onsubmit="handleSaveProfile(event)" class="space-y-4">
         <div>
           <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">Full Name</label>
-          <input type="text" id="input-fullname" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Enter Full Name" />
+          <input type="text" id="input-fullname" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500" />
         </div>
 
         <div>
-          <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">Assigned Role</label>
-          <select id="select-role" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
-            <option value="driver">Driver</option>
-            <option value="dispatcher">Dispatcher</option>
-            <option value="admin">Administrator</option>
-          </select>
+          <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-1">Role (Fetched from Supabase)</label>
+          <input type="text" id="input-role" readonly class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-400 cursor-not-allowed capitalize" />
         </div>
 
         <div>
@@ -72,10 +62,6 @@
     </div>
   </main>
 
-  <footer class="bg-gray-800 border-t border-gray-700 text-center py-4 text-xs text-gray-500">
-    &copy; 2026 FleetFlow Logistics System.
-  </footer>
-
   <script>
     const SUPABASE_URL = 'YOUR_SUPABASE_URL';
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
@@ -84,11 +70,10 @@
     let currentUser = null;
 
     async function loadUserProfile() {
+      // Require Login
       const { data: { user } } = await supabase.auth.getUser();
-
       if (!user) {
-        alert('Please log in to view your profile.');
-        window.location.href = 'index.html';
+        window.location.href = 'login.html';
         return;
       }
 
@@ -96,14 +81,15 @@
       document.getElementById('input-uid').value = user.id;
       document.getElementById('profile-email').innerText = user.email;
 
+      // Fetch Profile Details Directly from Supabase `profiles` Table
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
-      const fullName = profile?.full_name || user.user_metadata?.full_name || user.email.split('@')[0];
-      const role = profile?.role || user.user_metadata?.role || 'driver';
+      const fullName = profile?.full_name || user.email.split('@')[0];
+      const role = profile?.role || 'driver';
 
       document.getElementById('profile-name').innerText = fullName;
       document.getElementById('input-fullname').value = fullName;
-      document.getElementById('select-role').value = role;
+      document.getElementById('input-role').value = role;
       document.getElementById('profile-role-badge').innerText = role;
       document.getElementById('avatar-big').innerText = fullName.charAt(0).toUpperCase();
     }
@@ -111,26 +97,23 @@
     async function handleSaveProfile(e) {
       e.preventDefault();
       const updatedName = document.getElementById('input-fullname').value;
-      const updatedRole = document.getElementById('select-role').value;
 
       const { error } = await supabase.from('profiles').upsert({
         id: currentUser.id,
         full_name: updatedName,
-        role: updatedRole,
         updated_at: new Date().toISOString()
       });
 
-      if (error) {
-        alert('Failed to update profile: ' + error.message);
-      } else {
-        alert('Profile and role updated successfully!');
+      if (error) alert('Error saving profile: ' + error.message);
+      else {
+        alert('Profile updated successfully!');
         window.location.reload();
       }
     }
 
     async function handleLogout() {
       await supabase.auth.signOut();
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     }
 
     loadUserProfile();
