@@ -85,7 +85,7 @@
       <div class="flex items-center space-x-4 w-1/3">
         <div class="relative w-full">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm"></i>
-          <input type="text" placeholder="Search functional areas, users, loads..." class="w-full bg-gray-900 border border-gray-800 rounded-lg pl-9 pr-4 py-1.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500">
+          <input type="text" id="table-search" placeholder="Search functional areas, users, loads..." class="w-full bg-gray-900 border border-gray-800 rounded-lg pl-9 pr-4 py-1.5 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500">
         </div>
       </div>
 
@@ -104,10 +104,10 @@
 
         <!-- Admin Profile -->
         <div class="flex items-center space-x-3 border-l border-gray-800 pl-4">
-          <img src="https://ui-avatars.com/api/?name=Business+Owner&background=4f46e5&color=fff" class="w-9 h-9 rounded-full ring-2 ring-indigo-500" alt="Admin Avatar">
+          <div id="current-user-avatar" class="w-9 h-9 rounded-full ring-2 ring-indigo-500 bg-indigo-600 flex items-center justify-center font-bold text-white text-xs">--</div>
           <div class="text-left text-xs">
-            <div class="font-bold text-gray-200">Business Owner</div>
-            <div class="text-indigo-400">admin@apexfleet.com</div>
+            <div id="current-user-name" class="font-bold text-gray-200">Loading...</div>
+            <div id="current-user-email" class="text-indigo-400">...</div>
           </div>
         </div>
       </div>
@@ -124,14 +124,14 @@
         </div>
       </div>
 
-      <!-- Overview Stats -->
+      <!-- Overview Stats (Dynamic) -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-sm">
           <div class="flex justify-between items-center text-gray-400 mb-2">
             <span class="text-xs font-semibold tracking-wider uppercase">Admins / Owners</span>
             <i class="fa-solid fa-user-tie text-indigo-400"></i>
           </div>
-          <div class="text-2xl font-bold text-white">4</div>
+          <div id="stat-admins" class="text-2xl font-bold text-white">0</div>
           <p class="text-xs text-emerald-400 mt-2"><i class="fa-solid fa-shield-check"></i> Full Control Across All Areas</p>
         </div>
 
@@ -140,7 +140,7 @@
             <span class="text-xs font-semibold tracking-wider uppercase">Dispatchers / Operators</span>
             <i class="fa-solid fa-headset text-blue-400"></i>
           </div>
-          <div class="text-2xl font-bold text-white">18</div>
+          <div id="stat-dispatchers" class="text-2xl font-bold text-white">0</div>
           <p class="text-xs text-blue-400 mt-2"><i class="fa-solid fa-truck-ramp-box"></i> Operational Access</p>
         </div>
 
@@ -149,7 +149,7 @@
             <span class="text-xs font-semibold tracking-wider uppercase">Active Drivers</span>
             <i class="fa-solid fa-id-card text-amber-400"></i>
           </div>
-          <div class="text-2xl font-bold text-white">142</div>
+          <div id="stat-drivers" class="text-2xl font-bold text-white">0</div>
           <p class="text-xs text-amber-400 mt-2"><i class="fa-solid fa-location-dot"></i> Restricted Self-Scope Access</p>
         </div>
 
@@ -343,7 +343,7 @@
         </div>
       </div>
 
-      <!-- Managed Personnel Accounts Table -->
+      <!-- Managed Personnel Accounts Table (Dynamic) -->
       <div class="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden shadow-sm">
         <div class="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
           <div>
@@ -364,62 +364,12 @@
                 <th class="px-6 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-800/60 text-gray-300">
-
+            <tbody id="users-table-body" class="divide-y divide-gray-800/60 text-gray-300">
               <tr>
-                <td class="px-6 py-4 flex items-center space-x-3">
-                  <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white">MV</div>
-                  <div>
-                    <div class="font-semibold text-white">Marcus Vance</div>
-                    <div class="text-gray-500">m.vance@apexfleet.com</div>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Admin / Business Owner</span>
-                </td>
-                <td class="px-6 py-4 font-mono text-emerald-400">Full Control (Loadboard, Drivers, Dispatchers)</td>
-                <td class="px-6 py-4 text-emerald-400"><i class="fa-solid fa-circle text-[8px] mr-1.5"></i> Active</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <a href="users.html" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded inline-block">Edit Role</a>
+                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                  <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading fleet personnel from Supabase...
                 </td>
               </tr>
-
-              <tr>
-                <td class="px-6 py-4 flex items-center space-x-3">
-                  <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white">SJ</div>
-                  <div>
-                    <div class="font-semibold text-white">Sarah Jenkins</div>
-                    <div class="text-gray-500">s.jenkins@apexfleet.com</div>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 font-semibold border border-blue-500/30">Dispatcher / Operator</span>
-                </td>
-                <td class="px-6 py-4 text-gray-300">Loadboard, Driver Views, Telemetry & Rates</td>
-                <td class="px-6 py-4 text-emerald-400"><i class="fa-solid fa-circle text-[8px] mr-1.5"></i> Active</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <a href="users.html" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded inline-block">Edit Role</a>
-                </td>
-              </tr>
-
-              <tr>
-                <td class="px-6 py-4 flex items-center space-x-3">
-                  <div class="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center font-bold text-white">DM</div>
-                  <div>
-                    <div class="font-semibold text-white">David Miller</div>
-                    <div class="text-gray-500">d.miller@apexfleet.com</div>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">Driver</span>
-                </td>
-                <td class="px-6 py-4 text-gray-300">Assigned Loads, Self GPS, Personal Pay Only</td>
-                <td class="px-6 py-4 text-emerald-400"><i class="fa-solid fa-circle text-[8px] mr-1.5"></i> On Duty</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <a href="users.html" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded inline-block">Edit Role</a>
-                </td>
-              </tr>
-
             </tbody>
           </table>
         </div>
@@ -436,18 +386,20 @@
         <button onclick="closeModal('grantModal')" class="text-gray-500 hover:text-gray-300"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
-      <form class="space-y-4 text-xs">
+      <form id="role-assignment-form" class="space-y-4 text-xs">
         <div>
           <label class="block text-gray-400 font-medium mb-1">Select User Account</label>
-          <input type="text" placeholder="Search by driver ID, name, or email..." class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-indigo-500">
+          <select id="modal-user-select" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-indigo-500" required>
+            <option value="">Loading users...</option>
+          </select>
         </div>
 
         <div>
           <label class="block text-gray-400 font-medium mb-1">Assign Fleet Role</label>
-          <select class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-indigo-500">
-            <option>Admin / Business Owner (Full Control across Loadboard, Drivers, Dispatchers)</option>
-            <option>Dispatcher / Operator (Loadboard & Active Drivers)</option>
-            <option>Driver (Assigned Loads & Self Profile)</option>
+          <select id="modal-role-select" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-gray-200 focus:outline-none focus:border-indigo-500" required>
+            <option value="ADMIN">ADMIN (Full Control across Loadboard, Drivers, Dispatchers)</option>
+            <option value="DISPATCHER">DISPATCHER (Loadboard & Active Drivers)</option>
+            <option value="DRIVER">DRIVER (Assigned Loads & Self Profile)</option>
           </select>
         </div>
 
@@ -458,21 +410,179 @@
 
         <div class="flex justify-end space-x-3 pt-3 border-t border-gray-800">
           <button type="button" onclick="closeModal('grantModal')" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-semibold">Cancel</button>
-          <button type="button" onclick="closeModal('grantModal')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold">Confirm Role Assignment</button>
+          <button type="submit" id="modal-submit-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold">Confirm Role Assignment</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Interactive JavaScript -->
-  <script>
-    // Modal Handlers
-    function openModal(id) {
-      document.getElementById(id).classList.remove('hidden');
+  <!-- Supabase Dynamic Data Logic -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://tiazohjshnhqzdsjtrgo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpYXpvaGpzaG5ocXpkc2p0cmdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzg3ODQsImV4cCI6MjEwMDg1NDc4NH0.h8C6hws1umRwmV0AvyE0yl9iSG1q7mgJX-4-4_X4SIg';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let fetchedProfiles = [];
+
+    // Global Modal Trigger Handlers
+    window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
+    window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+
+    async function initDashboard() {
+      // 1. Check User Session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Render Header User Info
+      const user = session.user;
+      const initials = (user.email || 'US').substring(0, 2).toUpperCase();
+      document.getElementById('current-user-avatar').innerText = initials;
+      document.getElementById('current-user-name').innerText = user.user_metadata?.full_name || user.email.split('@')[0];
+      document.getElementById('current-user-email').innerText = user.email;
+
+      // 2. Fetch Profiles from Supabase
+      await fetchProfiles();
+
+      // 3. Setup Modal Submission
+      document.getElementById('role-assignment-form').addEventListener('submit', handleRoleAssignment);
     }
-    function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
+
+    async function fetchProfiles() {
+      const tableBody = document.getElementById('users-table-body');
+      const modalSelect = document.getElementById('modal-user-select');
+
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('*');
+
+      if (error) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-red-400">Error loading profiles: ${error.message}</td></tr>`;
+        return;
+      }
+
+      fetchedProfiles = profiles || [];
+      renderStats(fetchedProfiles);
+      renderTable(fetchedProfiles);
+      renderModalOptions(fetchedProfiles);
     }
+
+    function renderStats(profiles) {
+      let admins = 0, dispatchers = 0, drivers = 0;
+      profiles.forEach(p => {
+        const role = (p.role || 'DRIVER').toUpperCase();
+        if (role === 'ADMIN') admins++;
+        else if (role === 'DISPATCHER') dispatchers++;
+        else drivers++;
+      });
+
+      document.getElementById('stat-admins').innerText = admins;
+      document.getElementById('stat-dispatchers').innerText = dispatchers;
+      document.getElementById('stat-drivers').innerText = drivers;
+    }
+
+    function renderTable(profiles) {
+      const tableBody = document.getElementById('users-table-body');
+      if (profiles.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No registered users found in the database.</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = profiles.map(profile => {
+        const role = (profile.role || 'DRIVER').toUpperCase();
+        const fullName = profile.full_name || profile.name || 'Fleet Operator';
+        const email = profile.email || profile.username || 'N/A';
+        const initials = fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'FO';
+        const status = profile.status || 'Active';
+
+        let roleBadge = '';
+        let accessSummary = '';
+
+        if (role === 'ADMIN') {
+          roleBadge = `<span class="px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">Admin / Owner</span>`;
+          accessSummary = `<span class="font-mono text-emerald-400">Full Control (Loadboard, Drivers, Dispatchers)</span>`;
+        } else if (role === 'DISPATCHER') {
+          roleBadge = `<span class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 font-semibold border border-blue-500/30">Dispatcher / Operator</span>`;
+          accessSummary = `<span class="text-gray-300">Loadboard, Driver Views, Telemetry & Rates</span>`;
+        } else {
+          roleBadge = `<span class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">Driver</span>`;
+          accessSummary = `<span class="text-gray-300">Assigned Loads, Self GPS, Personal Pay Only</span>`;
+        }
+
+        return `
+          <tr>
+            <td class="px-6 py-4 flex items-center space-x-3">
+              <div class="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center font-bold text-white text-xs">${initials}</div>
+              <div>
+                <div class="font-semibold text-white">${fullName}</div>
+                <div class="text-gray-500">${email}</div>
+              </div>
+            </td>
+            <td class="px-6 py-4">${roleBadge}</td>
+            <td class="px-6 py-4">${accessSummary}</td>
+            <td class="px-6 py-4 text-emerald-400"><i class="fa-solid fa-circle text-[8px] mr-1.5"></i> ${status}</td>
+            <td class="px-6 py-4 text-right space-x-2">
+              <button onclick="openEditRole('${profile.id || profile.user_id}', '${role}')" class="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded inline-block">Edit Role</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderModalOptions(profiles) {
+      const modalSelect = document.getElementById('modal-user-select');
+      if (profiles.length === 0) {
+        modalSelect.innerHTML = `<option value="">No users available</option>`;
+        return;
+      }
+
+      modalSelect.innerHTML = profiles.map(p => {
+        const id = p.id || p.user_id;
+        const name = p.full_name || p.email || 'Unnamed User';
+        return `<option value="${id}">${name} (${(p.role || 'DRIVER').toUpperCase()})</option>`;
+      }).join('');
+    }
+
+    window.openEditRole = (userId, currentRole) => {
+      document.getElementById('modal-user-select').value = userId;
+      document.getElementById('modal-role-select').value = currentRole;
+      openModal('grantModal');
+    };
+
+    async function handleRoleAssignment(e) {
+      e.preventDefault();
+      const userId = document.getElementById('modal-user-select').value;
+      const newRole = document.getElementById('modal-role-select').value;
+      const submitBtn = document.getElementById('modal-submit-btn');
+
+      if (!userId) return;
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Updating...';
+
+      // Update Supabase profiles table
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .or(`id.eq.${userId},user_id.eq.${userId}`);
+
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Confirm Role Assignment';
+
+      if (error) {
+        alert('Failed to update role: ' + error.message);
+        return;
+      }
+
+      closeModal('grantModal');
+      await fetchProfiles();
+    }
+
+    initDashboard();
   </script>
 </body>
 </html>
